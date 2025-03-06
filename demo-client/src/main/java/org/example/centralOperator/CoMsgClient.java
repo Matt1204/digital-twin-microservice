@@ -1,5 +1,8 @@
 package org.example.centralOperator;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -24,7 +27,7 @@ public class CoMsgClient {
             this.channel = RabbitMQSetup.getChannel();
             listenMatchResponse();
         } catch (Exception e) {
-            throw new RuntimeException("Error setting up TaxiRpcClient: " + e.getMessage(), e);
+            throw new RuntimeException("Error setting up CoMsgClient: " + e.getMessage(), e);
         }
     }
 
@@ -55,7 +58,7 @@ public class CoMsgClient {
         );
     }
 
-    public String publishMatchReq(Map<String, Deque<Integer>> activeOrdersMap, Map<String, Set<Integer>> activeTaxisMap) {
+    public Map<String, List<Integer>> publishMatchReq(Map<String, Deque<Integer>> activeOrdersMap, Map<String, Set<Integer>> activeTaxisMap) {
         String correlationId = UUID.randomUUID().toString();
 
         Map<String, Object> combinedMap = new HashMap<>();
@@ -67,39 +70,35 @@ public class CoMsgClient {
         try {
             jsonMaps = objectMapper.writeValueAsString(combinedMap);
             System.out.println("Serialized JSON: " + jsonMaps);
+            publishMessage(correlationId, jsonMaps);
         } catch (IOException e) {
-            System.err.println("Error serializing CO maps: " + e.getMessage());
-            return "Error: Failed to serialize message.";
+            System.err.println("Error publishing CO maps: " + e.getMessage());
         }
 
         CompletableFuture<String> responseFuture = new CompletableFuture<>();
         responseMap.put(correlationId, responseFuture);
 
-        try {
-            publishMessage(correlationId, jsonMaps);
-        } catch (IOException e) {
-            System.err.println("Error publishing message to RabbitMQ: " + e.getMessage());
-            responseMap.remove(correlationId);
-            return "Error: Failed to publish message.";
-        }
 
         try {
             // block, wait for response
-            String responseJson = responseFuture.get(5, TimeUnit.SECONDS);
-            System.out.println("response JSON: " + responseJson);
-            return responseJson;
+            String stringifiedJson = responseFuture.get(5, TimeUnit.SECONDS);
+            System.out.println("CO raw JSON: " + stringifiedJson);
+            String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
+            System.out.println("CO parsed json: " + parsedJson);
 
-        } catch (TimeoutException e) {
-            System.err.println("Error: Response timeout for correlationId: " + correlationId);
-            responseMap.remove(correlationId);
-            return "Error: Response timeout.";
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.err.println("Error: Thread was interrupted.");
-            return "Error: Thread interrupted.";
+            Map<String, List<Integer>> matchingMap = objectMapper.readValue(parsedJson, new TypeReference<Map<String, List<Integer>>>() {});
+            return matchingMap;
+
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         } catch (ExecutionException e) {
-            System.err.println("Error processing message response: " + e.getCause().getMessage());
-            return "Error: Failed to process response.";
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
         }
     }
 
