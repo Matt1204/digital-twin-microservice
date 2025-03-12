@@ -1,8 +1,8 @@
 package org.example.centralOperator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
@@ -10,6 +10,7 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import org.example.RabbitMQConfig;
 import org.example.RabbitMQSetup;
+import org.example.order.TaxiOrder;
 import org.example.taxi.TaxiState;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class CoMsgClient {
         try {
             jsonMaps = objectMapper.writeValueAsString(combinedMap);
             System.out.println("Serialized JSON: " + jsonMaps);
-            publishMessage(correlationId, jsonMaps);
+            publishCorrelationMessage(correlationId, jsonMaps, RabbitMQConfig.CO_MATCH_REQUEST_ROUTING_KEY);
         } catch (IOException e) {
             System.err.println("Error publishing CO maps: " + e.getMessage());
         }
@@ -86,7 +87,8 @@ public class CoMsgClient {
             String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
             System.out.println("CO parsed json: " + parsedJson);
 
-            Map<String, List<Integer>> matchingMap = objectMapper.readValue(parsedJson, new TypeReference<Map<String, List<Integer>>>() {});
+            Map<String, List<Integer>> matchingMap = objectMapper.readValue(parsedJson, new TypeReference<Map<String, List<Integer>>>() {
+            });
             return matchingMap;
 
         } catch (JsonMappingException e) {
@@ -102,7 +104,53 @@ public class CoMsgClient {
         }
     }
 
-    private void publishMessage(String correlationId, String messageJson) throws IOException {
+    public void publishTaxiUpdate(TaxiState taxiState, boolean isToAdd) {
+        try {
+            Map<String, Object> messageData = new HashMap<>();
+            messageData.put("isToAdd", isToAdd);
+            messageData.put("taxiState", taxiState);
+            String jsonTaxiState = objectMapper.writeValueAsString(messageData);
+
+            System.out.println("Serialized TaxiState JSON: " + jsonTaxiState);
+            publishMessage(jsonTaxiState, RabbitMQConfig.CO_ACTIVE_TAXIS_UPDATE_ROUTING_KEY);
+
+            System.out.println("TaxiState update message published successfully.");
+        } catch (IOException e) {
+            System.err.println("Error publishing TaxiState update: " + e.getMessage());
+        }
+    }
+
+    public void publishOrdersUpdate(List<TaxiOrder> orderList) {
+        try {
+            Map<String, Object> messageData = new HashMap<>();
+            messageData.put("orderList", orderList);
+
+            String jsonOrderList = objectMapper.writeValueAsString(messageData);
+
+            System.out.println("Serialized taxiOrder JSON: " + jsonOrderList);
+            publishMessage(jsonOrderList, RabbitMQConfig.CO_ACTIVE_ORDERS_UPDATE_ROUTING_KEY);
+
+            System.out.println("TaxiState update message published successfully.");
+        } catch (IOException e) {
+            System.err.println("Error publishing TaxiState update: " + e.getMessage());
+        }
+    }
+
+    private void publishMessage(String messageJson, String routingKey) throws IOException {
+        AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
+                .contentType("application/json")
+                .deliveryMode(2) // Persistent message
+                .build();
+
+        channel.basicPublish(
+                RabbitMQConfig.CO_EXCHANGE,
+                routingKey,
+                props,
+                messageJson.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    private void publishCorrelationMessage(String correlationId, String messageJson, String routingKey) throws IOException {
         AMQP.BasicProperties props = new AMQP.BasicProperties.Builder()
                 .correlationId(correlationId)
                 .contentType("application/json")
@@ -111,7 +159,7 @@ public class CoMsgClient {
 
         channel.basicPublish(
                 RabbitMQConfig.CO_EXCHANGE,
-                RabbitMQConfig.CO_MATCH_REQUEST_ROUTING_KEY,
+                routingKey,
                 props,
                 messageJson.getBytes(StandardCharsets.UTF_8)
         );

@@ -1,17 +1,37 @@
 package org.example.taxi;
 
+
 public class TaxiState {
+    private String taxiId;
     private int timeInterval;
     private int taxiZone;
+    private double longitude;
+    private double latitude;
     private double soc;
+
 
     public TaxiState() {
     }
 
-    public TaxiState(int timeInterval, int zone, double soc) {
+    public TaxiState(String taxiId, int timeInterval, int zone, double soc) {
+        this(taxiId, timeInterval, zone, soc, 0, 0);
+    }
+
+    public TaxiState(String taxiId, int timeInterval, int zone, double soc, double longitude, double latitude) {
+        this.taxiId = taxiId;
         this.timeInterval = timeInterval;
         this.taxiZone = zone;
         this.soc = soc;
+        this.longitude = longitude;
+        this.latitude = latitude;
+    }
+
+    public String getTaxiId() {
+        return taxiId;
+    }
+
+    public void setTaxiId(String taxiId) {
+        this.taxiId = taxiId;
     }
 
     public int getTaxiZone() {
@@ -38,13 +58,31 @@ public class TaxiState {
         this.timeInterval = timeInterval;
     }
 
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
     @Override
     public String toString() {
-        return "TaxiStatus{" +
-                "timeInterval=" + timeInterval +
+        return "TaxiState{" +
+                "taxiId='" + taxiId + '\'' +
+                ", timeInterval=" + timeInterval +
                 ", taxiZone=" + taxiZone +
+                ", longitude=" + longitude +
+                ", latitude=" + latitude +
                 ", soc=" + soc +
                 '}';
     }
 }
-
