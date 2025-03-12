@@ -20,9 +20,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Component
-public class CoMessageListener {
+public class CoMatchingListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(CoMessageListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(CoMatchingListener.class);
 
     @Autowired
     private TaxiService taxiService;
