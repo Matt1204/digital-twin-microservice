@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="demo-microservice (1)" />
         <module name="demo-client" />
+        <module name="demo-microservice (2)" />
         <module name="demo-microservice" />
       </profile>
     </annotationProcessing>
@@ -16,6 +17,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="demo-microservice" options="-parameters" />
       <module name="demo-microservice (1)" options="-parameters" />
+      <module name="demo-microservice (2)" options="-parameters" />
     </option>
   </component>
 </project>
