@@ -1,17 +1,11 @@
 package org.example;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.centralOperator.CoMsgClient;
-import org.example.taxi.TaxiAction;
 import org.example.taxi.TaxiAgent;
-import org.example.taxi.TaxiMsgClient;
 import org.example.taxi.TaxiState;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -28,7 +22,7 @@ public class Main {
         activeOrdersMap.put("2", new ArrayDeque<>(Arrays.asList(5, 6)));
 
         Map<String, Set<Integer>> activeTaxisMap = new HashMap<>();
-        activeTaxisMap.put("1", new HashSet<>(Arrays.asList(3,7,9,10)));
+        activeTaxisMap.put("1", new HashSet<>(Arrays.asList(3, 7, 9, 10)));
         activeTaxisMap.put("2", new HashSet<>(Arrays.asList(1)));
         activeTaxisMap.put("3", new HashSet<>(Arrays.asList(5, 14)));
 
@@ -53,7 +47,6 @@ public class Main {
 
 
         RabbitMQSetup.close();
-
 
 
     }
