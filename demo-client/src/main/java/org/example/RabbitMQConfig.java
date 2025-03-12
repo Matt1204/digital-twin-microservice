@@ -7,6 +7,10 @@ public class RabbitMQConfig {
 
     public static final String CO_MATCH_REQUEST_ROUTING_KEY = "co.match.requests";
     public static final String CO_MATCH_RESPONSE_QUEUE = "co.match.responses";
+    public static final String CO_ACTIVE_TAXIS_UPDATE_ROUTING_KEY = "co.activeTaxis.update";
+    public static final String CO_ACTIVE_ORDERS_UPDATE_ROUTING_KEY = "co.activeOrders.update";
+
     public static final String CO_EXCHANGE = "co.exchange";
+
 }
 
