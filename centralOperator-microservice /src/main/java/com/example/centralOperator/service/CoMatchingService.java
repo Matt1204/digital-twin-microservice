@@ -93,29 +93,40 @@ public class CoMatchingService {
     }
 
     public String simpleMatch() {
+        System.out.println("----------- simpleMatch() -----------");
         List<TaxiOrder> ordersCopy = activeOrders.getActiveOrders();
         List<TaxiState> taxisCopy = activeTaxis.getActiveTaxis();
+        System.out.println("activeTaxis: " + activeTaxis.getActiveTaxisId());
+        System.out.println("activeOrders: " + activeOrders.getActiveOrdersId());
 
         Iterator<TaxiOrder> orderIterator = ordersCopy.iterator();
         Iterator<TaxiState> taxiIterator = taxisCopy.iterator();
-
         // Perform taxi-to-order matching
-        List<String> matchedOrders = new ArrayList<>();
-        List<String> matchedTaxis = new ArrayList<>();
+        List<String> matchedOrdersId = new ArrayList<>();
+        List<String> matchedTaxisId = new ArrayList<>();
         while (orderIterator.hasNext() && taxiIterator.hasNext()) {
             TaxiOrder order = orderIterator.next();
             TaxiState taxi = taxiIterator.next();
 
-            matchedOrders.add(order.getOrderId());
-            matchedTaxis.add(taxi.getTaxiId());
-            logger.info("Taxi {} --> Order {}", taxi.getTaxiId(), order.getOrderId());
+            matchedOrdersId.add(order.getOrderId());
+            matchedTaxisId.add(taxi.getTaxiId());
+            System.out.println(String.format("Taxi {} --> Order {}", taxi.getTaxiId(), order.getOrderId()));
         }
 
         try {
             // Prepare result
             Map<String, List<String>> result = new HashMap<>();
-            result.put("matchedOrders", matchedOrders);
-            result.put("matchedTaxis", matchedTaxis);
+            result.put("matchedOrders", matchedOrdersId);
+            result.put("matchedTaxis", matchedTaxisId);
+
+            System.out.println("----- new activeTaxis:");
+            activeTaxis.printActiveTaxis();
+            System.out.println("----- new activeOrders: ");
+            System.out.println(activeOrders.printActiveOrders());
+
+            this.activeTaxis.removeActiveTaxiList(matchedTaxisId);
+            this.activeOrders.removeActiveOrderList(matchedOrdersId);
+
             // Convert to JSON and return
             String resJson = objectMapper.writeValueAsString(result);
             return resJson;

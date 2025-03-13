@@ -41,9 +41,11 @@ public class OrderInitListener {
             }
 
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8);
-            logger.info("Received init msg: " + jsonString);
+            logger.info("Initialization Req: " + jsonString);
 
-            allOrders.loadOrdersFromExcel("2010-06-01+3_trips.xlsx");
+//            allOrders.loadOrdersFromExcel("2010-06-01+3_trips.xlsx");
+            int taxiOrderCount = allOrders.getOrderCount();
+            if (taxiOrderCount == 0) return;
 
             String res = objectMapper.writeValueAsString("initialize done");
 
@@ -57,8 +59,7 @@ public class OrderInitListener {
                         return messagePostProcessor;
                     }
             );
-            logger.info("**Response sent json: {}", res);
-            logger.info("**Response sent with correlation ID: {}", correlationId);
+//            logger.info("**Response sent json: {}", res);
 
         } catch (Exception e) {
             logger.error("Failed to process taxi update message", e);

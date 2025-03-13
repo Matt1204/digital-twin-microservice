@@ -1,31 +1,32 @@
 package org.example.taxi;
 
+import java.io.Serializable;
 
-public class TaxiState {
+public class TaxiState implements Serializable {
     private String taxiId;
-    private int timeInterval;
-    private int taxiZone;
+    private int timeIntervalId;
+    private int taxiZoneId;
     private double longitude;
     private double latitude;
     private double soc;
 
 
+
     public TaxiState() {
     }
 
-    public TaxiState(String taxiId, int timeInterval, int zone, double soc) {
-        this(taxiId, timeInterval, zone, soc, 0, 0);
+    public TaxiState(String taxiId, int timeIntervalId, int taxiZoneId, double soc) {
+        this(taxiId, timeIntervalId, taxiZoneId, soc, 0, 0);
     }
 
-    public TaxiState(String taxiId, int timeInterval, int zone, double soc, double longitude, double latitude) {
+    public TaxiState(String taxiId, int timeIntervalId, int taxiZoneId, double soc, double longitude, double latitude) {
         this.taxiId = taxiId;
-        this.timeInterval = timeInterval;
-        this.taxiZone = zone;
+        this.timeIntervalId = timeIntervalId;
+        this.taxiZoneId = taxiZoneId;
         this.soc = soc;
         this.longitude = longitude;
         this.latitude = latitude;
     }
-
     public String getTaxiId() {
         return taxiId;
     }
@@ -34,12 +35,12 @@ public class TaxiState {
         this.taxiId = taxiId;
     }
 
-    public int getTaxiZone() {
-        return taxiZone;
+    public int getTaxiZoneId() {
+        return taxiZoneId;
     }
 
-    public void setTaxiZone(int taxiZone) {
-        this.taxiZone = taxiZone;
+    public void setTaxiZoneId(int taxiZoneId) {
+        this.taxiZoneId = taxiZoneId;
     }
 
     public double getSoc() {
@@ -50,12 +51,12 @@ public class TaxiState {
         this.soc = soc;
     }
 
-    public int getTimeInterval() {
-        return timeInterval;
+    public int getTimeIntervalId() {
+        return timeIntervalId;
     }
 
-    public void setTimeInterval(int timeInterval) {
-        this.timeInterval = timeInterval;
+    public void setTimeIntervalId(int timeIntervalId) {
+        this.timeIntervalId = timeIntervalId;
     }
 
     public double getLatitude() {
@@ -78,8 +79,8 @@ public class TaxiState {
     public String toString() {
         return "TaxiState{" +
                 "taxiId='" + taxiId + '\'' +
-                ", timeInterval=" + timeInterval +
-                ", taxiZone=" + taxiZone +
+                ", timeInterval=" + timeIntervalId +
+                ", taxiZone=" + taxiZoneId +
                 ", longitude=" + longitude +
                 ", latitude=" + latitude +
                 ", soc=" + soc +

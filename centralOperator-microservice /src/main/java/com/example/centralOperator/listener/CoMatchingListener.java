@@ -45,7 +45,7 @@ public class CoMatchingListener {
         MessageProperties props = message.getMessageProperties();
         try {
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8); // take message body as json string
-            logger.info("**Received JSON string: {}", jsonString);
+            System.out.println("** Match Listener Received: " + jsonString);
 
             // Retrieve and validate correlation ID
             String correlationId = props.getCorrelationId();
@@ -68,8 +68,8 @@ public class CoMatchingListener {
                         return messagePostProcessor;
                     }
             );
-            logger.info("**Response sent json: {}", resJson);
-            logger.info("**Response sent with correlation ID: {}", correlationId);
+            System.out.println("**Response sent json: " + resJson);
+//            logger.info("**Response sent with correlation ID: {}", correlationId);
 
 
         } catch (Exception e) {
