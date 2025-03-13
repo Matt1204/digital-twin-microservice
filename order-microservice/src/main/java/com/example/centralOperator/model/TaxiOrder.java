@@ -1,5 +1,7 @@
 package com.example.centralOperator.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 public class TaxiOrder {
@@ -24,7 +26,6 @@ public class TaxiOrder {
         this.pickupTime = pickupTime;
         this.tripDistance = tripDistance;
         this.tripIncome = tripIncome;
-        //this.pickupZone = pickupZone;
     }
 
     public void setOrderId(String orderId) {
@@ -50,10 +51,6 @@ public class TaxiOrder {
     public void setPickupTime(Date pickupTime) {
         this.pickupTime = pickupTime;
     }
-
-//    public void setPickupZone(int pickupZone) {
-//        this.pickupZone = pickupZone;
-//    }
 
     public void setTripDistance(double tripDistance) {
         this.tripDistance = tripDistance;
@@ -86,10 +83,6 @@ public class TaxiOrder {
     public Date getPickupTime() {
         return pickupTime;
     }
-
-//    public int getPickupZone() {
-//        return pickupZone;
-//    }
 
     public double getTripDistance() {
         return tripDistance;

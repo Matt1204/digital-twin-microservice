@@ -1,4 +1,4 @@
-package com.example.centralOperator.model;
+package org.example.order;
 
 import java.util.Date;
 

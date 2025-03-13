@@ -3,6 +3,7 @@ package com.example.centralOperator.service;
 import com.example.centralOperator.model.TaxiOrder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -34,6 +35,12 @@ public class ActiveOrders {
         activeOrders.removeIf(order -> order.getOrderId().equals(orderId));
     }
 
+    public void removeActiveOrderList(List<String> orderIdList){
+        orderIdList.forEach(orderId -> {
+            this.removeActiveOrderById(orderId);
+        });
+    }
+
     public String printActiveOrders() {
         if (activeOrders.isEmpty()) {
             return "No active orders available.";
@@ -42,5 +49,13 @@ public class ActiveOrders {
             activeOrders.forEach(order -> content.append(order).append("\n"));
             return content.toString();
         }
+    }
+
+    public List<String> getActiveOrdersId() {
+        List<String> orderIds = new ArrayList<>();
+        for (TaxiOrder order : activeOrders) {
+            orderIds.add(order.getOrderId());
+        }
+        return orderIds;
     }
 }

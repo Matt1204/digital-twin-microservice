@@ -36,7 +36,8 @@ public class ActiveOrdersService {
             }
 
             orderList.forEach(order -> activeOrders.addActiveOrder(order));
-            logger.info(activeOrders.printActiveOrders());
+            System.out.println("----- activeOrders Update -----");
+            System.out.println(activeOrders.printActiveOrders());
 
         } catch (JsonProcessingException e) {
             logger.error("Failed to parse input JSON", e);

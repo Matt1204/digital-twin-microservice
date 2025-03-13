@@ -1,7 +1,9 @@
 package com.example.centralOperator.listener;
 
 import com.example.centralOperator.config.RabbitMQConfig;
-import com.example.centralOperator.service.ActiveOrdersService;
+import com.example.centralOperator.model.TaxiOrder;
+import com.example.centralOperator.service.FetchOrderService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,24 +15,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Component
-public class CoOrderUpdateListener {
+public class OrderFetchListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(CoOrderUpdateListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrderFetchListener.class);
 
     @Autowired
-    private ActiveOrdersService activeOrdersService;
+    private FetchOrderService fetchOrderService;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-
     @Autowired
     private ObjectMapper objectMapper;
 
-    @RabbitListener(queues = RabbitMQConfig.CO_ACTIVE_ORDERS_UPDATE_REQUEST_QUEUE)
-    public void listenOrderUpdate(Message message) {
+    @RabbitListener(queues = RabbitMQConfig.ORDER_FETCH_REQUEST_QUEUE)
+    public void listenOrderFetch(Message message) {
         try {
             MessageProperties props = message.getMessageProperties();
             String correlationId = props.getCorrelationId();
@@ -40,25 +46,26 @@ public class CoOrderUpdateListener {
             }
 
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8);
-            System.out.println("** activeOrder Listener Received: " + jsonString);
+//            logger.info("Received fetch request: " + jsonString);
 
-            activeOrdersService.handleAddActiveOrders(jsonString);
+            String res = fetchOrderService.handleFetchOrders(jsonString);
 
-            String resJson = objectMapper.writeValueAsString("ORDER_UPDATE_DONE");
             rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.CO_EXCHANGE, // exchange
-                    RabbitMQConfig.CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE, // routing_key
-                    resJson,
+                    RabbitMQConfig.ORDER_EXCHANGE,
+                    RabbitMQConfig.ORDER_FETCH_RESPONSE_QUEUE,
+                    res,
                     messagePostProcessor -> {
                         messagePostProcessor.getMessageProperties().setCorrelationId(correlationId);
                         messagePostProcessor.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
                         return messagePostProcessor;
                     }
             );
-            System.out.println("** activeOrder response: " + resJson);
+
+//            logger.info("**Response sent json: {}", res);
+            logger.info("**Response sent with correlation ID: {}", correlationId);
 
         } catch (Exception e) {
-            logger.error("Failed to process order update message", e);
+            logger.error("Failed to process order fetch request", e);
         }
     }
 }

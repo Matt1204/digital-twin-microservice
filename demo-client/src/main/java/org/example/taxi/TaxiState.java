@@ -1,25 +1,46 @@
 package org.example.taxi;
 
-public class TaxiState {
-    private int timeInterval;
-    private int taxiZone;
+import java.io.Serializable;
+
+public class TaxiState implements Serializable {
+    private String taxiId;
+    private int timeIntervalId;
+    private int taxiZoneId;
+    private double longitude;
+    private double latitude;
     private double soc;
+
+
 
     public TaxiState() {
     }
 
-    public TaxiState(int timeInterval, int zone, double soc) {
-        this.timeInterval = timeInterval;
-        this.taxiZone = zone;
+    public TaxiState(String taxiId, int timeIntervalId, int taxiZoneId, double soc) {
+        this(taxiId, timeIntervalId, taxiZoneId, soc, 0, 0);
+    }
+
+    public TaxiState(String taxiId, int timeIntervalId, int taxiZoneId, double soc, double longitude, double latitude) {
+        this.taxiId = taxiId;
+        this.timeIntervalId = timeIntervalId;
+        this.taxiZoneId = taxiZoneId;
         this.soc = soc;
+        this.longitude = longitude;
+        this.latitude = latitude;
+    }
+    public String getTaxiId() {
+        return taxiId;
     }
 
-    public int getTaxiZone() {
-        return taxiZone;
+    public void setTaxiId(String taxiId) {
+        this.taxiId = taxiId;
     }
 
-    public void setTaxiZone(int taxiZone) {
-        this.taxiZone = taxiZone;
+    public int getTaxiZoneId() {
+        return taxiZoneId;
+    }
+
+    public void setTaxiZoneId(int taxiZoneId) {
+        this.taxiZoneId = taxiZoneId;
     }
 
     public double getSoc() {
@@ -30,21 +51,39 @@ public class TaxiState {
         this.soc = soc;
     }
 
-    public int getTimeInterval() {
-        return timeInterval;
+    public int getTimeIntervalId() {
+        return timeIntervalId;
     }
 
-    public void setTimeInterval(int timeInterval) {
-        this.timeInterval = timeInterval;
+    public void setTimeIntervalId(int timeIntervalId) {
+        this.timeIntervalId = timeIntervalId;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
     }
 
     @Override
     public String toString() {
-        return "TaxiStatus{" +
-                "timeInterval=" + timeInterval +
-                ", taxiZone=" + taxiZone +
+        return "TaxiState{" +
+                "taxiId='" + taxiId + '\'' +
+                ", timeInterval=" + timeIntervalId +
+                ", taxiZone=" + taxiZoneId +
+                ", longitude=" + longitude +
+                ", latitude=" + latitude +
                 ", soc=" + soc +
                 '}';
     }
 }
-

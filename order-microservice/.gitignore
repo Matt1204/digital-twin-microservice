@@ -33,27 +33,3 @@ build/
 .vscode/
 
 .DS_Store
-
-# Data storage files
-*.xlsx
-*.csv
-*.json
-*.xml
-*.db
-*.sqlite
-
-# Logs
-logs/
-*.log
-
-# Local environment
-.env
-.env.local
-
-# Maven-specific
-mvnw
-mvnw.cmd
-
-# macOS
-.AppleDouble
-.LSOverride

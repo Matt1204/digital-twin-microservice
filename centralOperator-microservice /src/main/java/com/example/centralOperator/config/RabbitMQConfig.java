@@ -12,9 +12,12 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
     public static final String CO_MATCH_REQUEST_QUEUE = "co.match.requests";
     public static final String CO_MATCH_RESPONSE_QUEUE = "co.match.responses";
+    public static final String CO_ACTIVE_TAXIS_UPDATE_REQUEST_QUEUE = "co.activeTaxis.update.requests";
+    public static final String CO_ACTIVE_TAXIS_UPDATE_RESPONSE_QUEUE = "co.activeTaxis.update.responses";
+    public static final String CO_ACTIVE_ORDERS_UPDATE_REQUEST_QUEUE = "co.activeOrders.update.requests";
+    public static final String CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE = "co.activeOrders.update.responses";
+
     public static final String CO_EXCHANGE = "co.exchange";
-    public static final String CO_ACTIVE_TAXIS_UPDATE_QUEUE = "co.activeTaxis.update";
-    public static final String CO_ACTIVE_ORDERS_UPDATE_QUEUE = "co.activeOrders.update";
 
     @Bean
     public Jackson2JsonMessageConverter messageConverter() {
@@ -63,23 +66,39 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue activeTaxisUpdateQueue() {
-        return new Queue(CO_ACTIVE_TAXIS_UPDATE_QUEUE, true);
+    public Queue activeTaxisUpdateRequestQueue() {
+        return new Queue(CO_ACTIVE_TAXIS_UPDATE_REQUEST_QUEUE, true);
     }
 
     @Bean
-    public Queue activeOrdersUpdateQueue() {
-        return new Queue(CO_ACTIVE_ORDERS_UPDATE_QUEUE, true);
+    public Queue activeTaxisUpdateResponseQueue() {
+        return new Queue(CO_ACTIVE_TAXIS_UPDATE_RESPONSE_QUEUE, true);
+    }
+    @Bean
+    public Binding taxiUpdateRequestBinding(Queue activeTaxisUpdateRequestQueue, DirectExchange coExchange) {
+        return BindingBuilder.bind(activeTaxisUpdateRequestQueue).to(coExchange).with(CO_ACTIVE_TAXIS_UPDATE_REQUEST_QUEUE);
+    }
+    @Bean
+    public Binding taxiUpdateResponseBinding(Queue activeTaxisUpdateResponseQueue, DirectExchange coExchange) {
+        return BindingBuilder.bind(activeTaxisUpdateResponseQueue).to(coExchange).with(CO_ACTIVE_TAXIS_UPDATE_RESPONSE_QUEUE);
     }
 
     @Bean
-    public Binding taxiUpdateBinding(Queue activeTaxisUpdateQueue, DirectExchange coExchange) {
-        return BindingBuilder.bind(activeTaxisUpdateQueue).to(coExchange).with(CO_ACTIVE_TAXIS_UPDATE_QUEUE);
+    public Queue activeOrdersUpdateRequestQueue() {
+        return new Queue(CO_ACTIVE_ORDERS_UPDATE_REQUEST_QUEUE, true);
+    }
+    @Bean
+    public Queue activeOrdersUpdateResponseQueue() {
+        return new Queue(CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE, true);
     }
 
     @Bean
-    public Binding orderUpdateBinding(Queue activeOrdersUpdateQueue, DirectExchange coExchange) {
-        return BindingBuilder.bind(activeOrdersUpdateQueue).to(coExchange).with(CO_ACTIVE_ORDERS_UPDATE_QUEUE);
+    public Binding orderUpdateRequestBinding(Queue activeOrdersUpdateRequestQueue, DirectExchange coExchange) {
+        return BindingBuilder.bind(activeOrdersUpdateRequestQueue).to(coExchange).with(CO_ACTIVE_ORDERS_UPDATE_REQUEST_QUEUE);
+    }
+    @Bean
+    public Binding orderUpdateResponseBinding(Queue activeOrdersUpdateResponseQueue, DirectExchange coExchange) {
+        return BindingBuilder.bind(activeOrdersUpdateResponseQueue).to(coExchange).with(CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE);
     }
 }
 
