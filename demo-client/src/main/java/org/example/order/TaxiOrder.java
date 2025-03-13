@@ -16,6 +16,8 @@ public class TaxiOrder {
     double tripDistance;
     double tripIncome;
 
+    public TaxiOrder(){}
+
     public TaxiOrder(String orderId, double pickupLon, double pickupLat, double dropoffLon, double dropoffLat, Date pickupTime, double tripDistance, double tripIncome) {
         this(orderId, pickupLon, pickupLat, dropoffLon, dropoffLat, pickupTime, tripDistance, tripIncome, 0);
     }
