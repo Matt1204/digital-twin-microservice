@@ -1,10 +1,8 @@
 package com.example.centralOperator.listener;
 
 import com.example.centralOperator.config.RabbitMQConfig;
-import com.example.centralOperator.model.TaxiState;
-import com.example.centralOperator.service.CoService;
+import com.example.centralOperator.service.CoMatchingService;
 import com.example.centralOperator.service.TaxiService;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 @Component
 public class CoMatchingListener {
@@ -28,7 +25,7 @@ public class CoMatchingListener {
     private TaxiService taxiService;
 
     @Autowired
-    private CoService coService;
+    private CoMatchingService coMatchingService;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -48,7 +45,7 @@ public class CoMatchingListener {
         MessageProperties props = message.getMessageProperties();
         try {
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8); // take message body as json string
-            logger.info("**Received JSON string: {}", jsonString);
+            System.out.println("** Match Listener Received: " + jsonString);
 
             // Retrieve and validate correlation ID
             String correlationId = props.getCorrelationId();
@@ -57,7 +54,8 @@ public class CoMatchingListener {
                 return;
             }
 
-            String resJson = coService.matchTaxiToOrder(jsonString);
+//            String resJson = coMatchingService.matchTaxiToOrder(jsonString);
+            String resJson = coMatchingService.simpleMatch();
 
             // Send response using RabbitTemplate's JSON conversion
             rabbitTemplate.convertAndSend(
@@ -70,8 +68,8 @@ public class CoMatchingListener {
                         return messagePostProcessor;
                     }
             );
-            logger.info("**Response sent json: {}", resJson);
-            logger.info("**Response sent with correlation ID: {}", correlationId);
+            System.out.println("**Response sent json: " + resJson);
+//            logger.info("**Response sent with correlation ID: {}", correlationId);
 
 
         } catch (Exception e) {
