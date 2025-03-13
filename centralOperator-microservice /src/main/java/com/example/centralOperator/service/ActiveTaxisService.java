@@ -21,8 +21,9 @@ public class ActiveTaxisService {
 
     public void handleUpdateActiveTaxi(String jsonMsg) {
         try {
-            Map<String, Object> parsedMap = objectMapper.readValue(jsonMsg, new TypeReference<Map<String, Object>>() {
-            });
+            Map<String, Object> parsedMap = objectMapper.readValue(
+                    jsonMsg, new TypeReference<Map<String, Object>>() {
+                    });
 
             if (parsedMap == null || !parsedMap.containsKey("isToAdd") || !parsedMap.containsKey("taxiState")) {
                 logger.error("Invalid input JSON: Missing isToAdd or taxiState.");
@@ -36,6 +37,8 @@ public class ActiveTaxisService {
             } else {
                 activeTaxis.removeActiveTaxiById(taxiState.getTaxiId());
             }
+
+            System.out.println("----- activeTaxis Update -----");
             activeTaxis.printActiveTaxis();
         } catch (JsonProcessingException e) {
             logger.error("Failed to convert result to JSON", e);

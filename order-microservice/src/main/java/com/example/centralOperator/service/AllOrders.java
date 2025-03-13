@@ -1,8 +1,12 @@
 package com.example.centralOperator.service;
 
+import com.example.centralOperator.listener.OrderInitListener;
 import com.example.centralOperator.model.TaxiOrder;
+import jakarta.annotation.PostConstruct;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -14,6 +18,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AllOrders {
 
     private final List<TaxiOrder> allOrders = new CopyOnWriteArrayList<>();
+
+    private static final Logger logger = LoggerFactory.getLogger(AllOrders.class);
+
+    @PostConstruct
+    public void init() {
+        logger.info("AllOrders initializing......");
+        loadOrdersFromExcel("2010-06-01+3_trips.xlsx");
+        logger.info("AllOrders initializing Done.");
+
+    }
 
     public List<TaxiOrder> getAllOrders() {
         return List.copyOf(allOrders);
@@ -44,7 +58,7 @@ public class AllOrders {
             }
 
             int count = this.getOrderCount();
-            System.out.println("!!!!!!!!!!! Read: " + count);
+            logger.info("AllOrders read {} from {}", count, fileName);
 
         } catch (Exception e) {
             e.printStackTrace();

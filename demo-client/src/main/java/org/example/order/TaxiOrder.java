@@ -4,25 +4,18 @@ import java.util.Date;
 
 public class TaxiOrder {
     String orderId;
-    //    Rider rider;
-//    GISPoint pickupLocation;
-//    GISPoint dropoffLocation;
     double pickupLon;
     double pickupLat;
     double dropoffLon;
     double dropoffLat;
     Date pickupTime;
-    int pickupZone;
     double tripDistance;
     double tripIncome;
 
-    public TaxiOrder(){}
-
-    public TaxiOrder(String orderId, double pickupLon, double pickupLat, double dropoffLon, double dropoffLat, Date pickupTime, double tripDistance, double tripIncome) {
-        this(orderId, pickupLon, pickupLat, dropoffLon, dropoffLat, pickupTime, tripDistance, tripIncome, 0);
+    public TaxiOrder() {
     }
 
-    public TaxiOrder(String orderId, double pickupLon, double pickupLat, double dropoffLon, double dropoffLat, Date pickupTime, double tripDistance, double tripIncome, int pickupZone) {
+    public TaxiOrder(String orderId, double pickupLon, double pickupLat, double dropoffLon, double dropoffLat, Date pickupTime, double tripDistance, double tripIncome) {
         this.orderId = orderId;
         this.pickupLon = pickupLon;
         this.pickupLat = pickupLat;
@@ -31,7 +24,7 @@ public class TaxiOrder {
         this.pickupTime = pickupTime;
         this.tripDistance = tripDistance;
         this.tripIncome = tripIncome;
-        this.pickupZone = pickupZone;
+        //this.pickupZone = pickupZone;
     }
 
     public void setOrderId(String orderId) {
@@ -58,9 +51,9 @@ public class TaxiOrder {
         this.pickupTime = pickupTime;
     }
 
-    public void setPickupZone(int pickupZone) {
-        this.pickupZone = pickupZone;
-    }
+//    public void setPickupZone(int pickupZone) {
+//        this.pickupZone = pickupZone;
+//    }
 
     public void setTripDistance(double tripDistance) {
         this.tripDistance = tripDistance;
@@ -94,9 +87,9 @@ public class TaxiOrder {
         return pickupTime;
     }
 
-    public int getPickupZone() {
-        return pickupZone;
-    }
+//    public int getPickupZone() {
+//        return pickupZone;
+//    }
 
     public double getTripDistance() {
         return tripDistance;
@@ -115,10 +108,8 @@ public class TaxiOrder {
                 ", dropoffLon=" + dropoffLon +
                 ", dropoffLat=" + dropoffLat +
                 ", pickupTime=" + pickupTime +
-                ", pickupZone=" + pickupZone +
                 ", tripDistance=" + tripDistance +
                 ", tripIncome=" + tripIncome +
                 '}';
     }
 }
-

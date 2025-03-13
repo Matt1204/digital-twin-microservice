@@ -27,6 +27,8 @@ public class CoMsgClient {
         try {
             this.channel = RabbitMQSetup.getChannel();
             listenMatchResponse();
+            listenUpdateTaxiResponse();
+            listenUpdateOrderResponse();
         } catch (Exception e) {
             throw new RuntimeException("Error setting up CoMsgClient: " + e.getMessage(), e);
         }
@@ -59,6 +61,46 @@ public class CoMsgClient {
         );
     }
 
+    private void listenUpdateTaxiResponse() throws IOException {
+        channel.basicConsume(RabbitMQConfig.CO_ACTIVE_TAXIS_UPDATE_RESPONSE_QUEUE, false,
+                new DefaultConsumer(channel) {
+                    @Override
+                    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                        String correlationId = properties.getCorrelationId();
+                        String responseJson = new String(body, StandardCharsets.UTF_8);
+                        channel.basicAck(envelope.getDeliveryTag(), false);
+
+                        if (correlationId != null) {
+                            CompletableFuture<String> future = responseMap.remove(correlationId);
+                            if (future != null) {
+                                future.complete(responseJson);
+                            }
+                        }
+                    }
+                }
+        );
+    }
+
+    private void listenUpdateOrderResponse() throws IOException {
+        channel.basicConsume(RabbitMQConfig.CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE, false,
+                new DefaultConsumer(channel) {
+                    @Override
+                    public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
+                        String correlationId = properties.getCorrelationId();
+                        String responseJson = new String(body, StandardCharsets.UTF_8);
+                        channel.basicAck(envelope.getDeliveryTag(), false);
+
+                        if (correlationId != null) {
+                            CompletableFuture<String> future = responseMap.remove(correlationId);
+                            if (future != null) {
+                                future.complete(responseJson);
+                            }
+                        }
+                    }
+                }
+        );
+    }
+
     public Map<String, List<Integer>> publishMatchReq(Map<String, Deque<Integer>> activeOrdersMap, Map<String, Set<Integer>> activeTaxisMap) {
         String correlationId = UUID.randomUUID().toString();
 
@@ -83,9 +125,9 @@ public class CoMsgClient {
         try {
             // block, wait for response
             String stringifiedJson = responseFuture.get(5, TimeUnit.SECONDS);
-            System.out.println("CO raw JSON: " + stringifiedJson);
+            System.out.println("CO Match raw JSON: " + stringifiedJson);
             String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
-            System.out.println("CO parsed json: " + parsedJson);
+//            System.out.println("CO parsed json: " + parsedJson);
 
             Map<String, List<Integer>> matchingMap = objectMapper.readValue(parsedJson, new TypeReference<Map<String, List<Integer>>>() {
             });
@@ -106,15 +148,40 @@ public class CoMsgClient {
 
     public void publishTaxiUpdate(TaxiState taxiState, boolean isToAdd) {
         try {
+            String correlationId = UUID.randomUUID().toString();
+
             Map<String, Object> messageData = new HashMap<>();
             messageData.put("isToAdd", isToAdd);
             messageData.put("taxiState", taxiState);
             String jsonTaxiState = objectMapper.writeValueAsString(messageData);
 
-            System.out.println("Serialized TaxiState JSON: " + jsonTaxiState);
-            publishMessage(jsonTaxiState, RabbitMQConfig.CO_ACTIVE_TAXIS_UPDATE_ROUTING_KEY);
+            try {
+                publishCorrelationMessage(correlationId, jsonTaxiState, RabbitMQConfig.CO_ACTIVE_TAXIS_UPDATE_REQUEST_ROUTING_KEY);
+            } catch (IOException e) {
+                System.err.println("Error publishing CO activeTaxi: " + e.getMessage());
+            }
 
-            System.out.println("TaxiState update message published successfully.");
+            CompletableFuture<String> responseFuture = new CompletableFuture<>();
+            responseMap.put(correlationId, responseFuture);
+
+
+            try {
+                // block, wait for response
+                String stringifiedJson = responseFuture.get(5, TimeUnit.SECONDS);
+                System.out.println("CO updateTaxi response: " + stringifiedJson);
+                String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
+
+            } catch (JsonMappingException e) {
+                throw new RuntimeException(e);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (TimeoutException e) {
+                throw new RuntimeException(e);
+            }
         } catch (IOException e) {
             System.err.println("Error publishing TaxiState update: " + e.getMessage());
         }
@@ -122,15 +189,38 @@ public class CoMsgClient {
 
     public void publishOrdersUpdate(List<TaxiOrder> orderList) {
         try {
+            String correlationId = UUID.randomUUID().toString();
+
             Map<String, Object> messageData = new HashMap<>();
             messageData.put("orderList", orderList);
 
             String jsonOrderList = objectMapper.writeValueAsString(messageData);
 
-            System.out.println("Serialized taxiOrder JSON: " + jsonOrderList);
-            publishMessage(jsonOrderList, RabbitMQConfig.CO_ACTIVE_ORDERS_UPDATE_ROUTING_KEY);
+            try {
+                publishCorrelationMessage(correlationId, jsonOrderList, RabbitMQConfig.CO_ACTIVE_ORDERS_UPDATE_REQUEST_ROUTING_KEY);
+            } catch (IOException e) {
+                System.err.println("Error publishing CO activeOrder: " + e.getMessage());
+            }
 
-            System.out.println("TaxiState update message published successfully.");
+            CompletableFuture<String> responseFuture = new CompletableFuture<>();
+            responseMap.put(correlationId, responseFuture);
+            try {
+                // block, wait for response
+                String stringifiedJson = responseFuture.get(5, TimeUnit.SECONDS);
+                System.out.println("CO updateOrder response: " + stringifiedJson);
+                String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
+
+            } catch (JsonMappingException e) {
+                throw new RuntimeException(e);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (TimeoutException e) {
+                throw new RuntimeException(e);
+            }
         } catch (IOException e) {
             System.err.println("Error publishing TaxiState update: " + e.getMessage());
         }
