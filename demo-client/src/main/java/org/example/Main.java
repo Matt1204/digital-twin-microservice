@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.centralOperator.CoMsgClient;
 import org.example.order.OrderMsgClient;
@@ -7,6 +8,7 @@ import org.example.order.TaxiOrder;
 import org.example.taxi.TaxiAgent;
 import org.example.taxi.TaxiState;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Main {
@@ -17,6 +19,15 @@ public class Main {
 
         OrderMsgClient orderMsgClient = new OrderMsgClient();
         orderMsgClient.publishInitReq();
+        Date currentDate = new Date();
+        System.out.println(currentDate);
+        String fetchedOrdersStr = orderMsgClient.publishFetchOrderReq(new Date(), 300);
+
+//        ObjectMapper objectMapper = new ObjectMapper();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        objectMapper.setDateFormat(sdf); // Ensure correct date parsing
+        List<TaxiOrder> orders = objectMapper.readValue(fetchedOrdersStr, new TypeReference<List<TaxiOrder>>() {});
+
 
 //        TaxiAgent taxi = new TaxiAgent();
 //        taxi.invokeTaxiAction(new TaxiState(1, 260, 100, -73.57602765306774, 45.49422596892001));

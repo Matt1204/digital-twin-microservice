@@ -13,6 +13,8 @@ public class RabbitMQConfig {
 
     public static final String ORDER_INIT_REQUEST_ROUTING_KEY = "order.init.requests";
     public static final String ORDER_INIT_RESPONSE_QUEUE = "order.init.responses";
+    public static final String ORDER_FETCH_REQUEST_ROUTING_KEY = "order.fetch.requests";
+    public static final String ORDER_FETCH_RESPONSE_QUEUE = "order.fetch.responses";
     public static final String ORDER_EXCHANGE = "order.exchange";
 
 
