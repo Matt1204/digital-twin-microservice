@@ -146,12 +146,11 @@ public class CoMsgClient {
         }
     }
 
-    public void publishTaxiUpdate(TaxiState taxiState, boolean isToAdd) {
+    public void publishTaxiUpdate(TaxiState taxiState) {
         try {
             String correlationId = UUID.randomUUID().toString();
 
             Map<String, Object> messageData = new HashMap<>();
-            messageData.put("isToAdd", isToAdd);
             messageData.put("taxiState", taxiState);
             String jsonTaxiState = objectMapper.writeValueAsString(messageData);
 

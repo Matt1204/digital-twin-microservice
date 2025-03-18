@@ -41,9 +41,6 @@ public class TaxiService {
                 isToCharge = false;
             }
 
-//            Map<String, Object> resMap = new HashMap<>();
-//            resMap.put("taxiZoneId", toTaxiZone);
-//            resMap.put("isToCharge", isToCharge);
             String resJson = objectMapper.writeValueAsString(new TaxiAction(toTaxiZone, isToCharge));
             return resJson;
 
