@@ -34,7 +34,7 @@ public class TaxiStateMapService {
             TaxiState taxiState = objectMapper.convertValue(parsedMap.get("taxiState"), TaxiState.class);
             taxiStateMap.addUpdateTaxi(taxiState);
 
-            taxiStateMap.printTaxisStateMap();
+            // taxiStateMap.printTaxisStateMap();
             System.out.println("----- TaxiStateMap Update Done -----");
         } catch (JsonProcessingException e) {
             logger.error("Failed to convert result to JSON", e);

@@ -1,4 +1,4 @@
-package com.example.centralOperator.service;
+package com.example.centralOperator.publisher;
 
 import com.example.centralOperator.config.RabbitMQConfig;
 import org.slf4j.Logger;

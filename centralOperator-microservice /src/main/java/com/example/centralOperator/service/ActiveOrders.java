@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Random;
 
 @Service
 public class ActiveOrders {
@@ -57,5 +58,18 @@ public class ActiveOrders {
             orderIds.add(order.getOrderId());
         }
         return orderIds;
+    }
+
+    public int getActiveOrdersCount() {
+        return activeOrders.size();
+    }
+
+    public TaxiOrder getRandomActiveOrder() {
+        if (activeOrders.isEmpty()) {
+            return null;
+        }
+        Random random = new Random();
+        int index = random.nextInt(getActiveOrdersCount());
+        return activeOrders.get(index);
     }
 }

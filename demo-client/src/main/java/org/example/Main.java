@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.centralOperator.CoMsgClient;
 import org.example.order.OrderMsgClient;
 import org.example.order.TaxiOrder;
+import org.example.taxi.TaxiOperationManager;
 import org.example.taxi.TaxiOperationType;
 import org.example.taxi.TaxiState;
 
@@ -40,7 +41,9 @@ public class Main {
         // 3. CO Microservice
         CoMsgClient coClient = new CoMsgClient();
 
-//        // 3.1 updating active Taxis
+        coClient.publishOpDone("0", TaxiOperationType.IDLING);
+
+        // 3.1 updating active Taxis
         coClient.publishTaxiUpdate(new TaxiState("0", -73.575678, 45.497234, 80, 10, TaxiOperationType.REPOSITIONING));
         coClient.publishTaxiUpdate(new TaxiState("1", -73.576890, 45.498567, 100, 50, TaxiOperationType.SERVICE));
         coClient.publishTaxiUpdate(new TaxiState("2", -73.578123, 45.499890, 60, 20, TaxiOperationType.CHARGING));

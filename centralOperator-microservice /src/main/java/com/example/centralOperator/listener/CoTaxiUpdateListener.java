@@ -2,7 +2,7 @@ package com.example.centralOperator.listener;
 
 import com.example.centralOperator.config.RabbitMQConfig;
 import com.example.centralOperator.service.TaxiStateMapService;
-import com.example.centralOperator.service.MessagePublisherService;
+import com.example.centralOperator.publisher.MessagePublisherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class CoTaxiUpdateListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(CoListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(CoTaxiUpdateListener.class);
 
     @Autowired
     private TaxiStateMapService taxiStateMapService;
@@ -40,7 +40,7 @@ public class CoTaxiUpdateListener {
             }
 
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8);
-            System.out.println("** taxiStateMap Listener Received: " + jsonString);
+//            System.out.println("** taxiStateMap Listener Received: " + jsonString);
 
             taxiStateMapService.handleUpdateActiveTaxi(jsonString);
 
