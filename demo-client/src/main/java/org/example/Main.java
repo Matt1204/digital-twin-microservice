@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.centralOperator.CoMsgClient;
 import org.example.order.OrderMsgClient;
 import org.example.order.TaxiOrder;
+import org.example.taxi.TaxiOperationManager;
+import org.example.taxi.TaxiOperationType;
 import org.example.taxi.TaxiState;
 
 import java.text.SimpleDateFormat;
@@ -39,11 +41,13 @@ public class Main {
         // 3. CO Microservice
         CoMsgClient coClient = new CoMsgClient();
 
-//        // 3.1 updating active Taxis
-        coClient.publishTaxiUpdate(new TaxiState("001", 15, 270, 90, -73.574123456789, 45.496789123456), true);
-        coClient.publishTaxiUpdate(new TaxiState("002", 20, 280, 85, -73.575678901234, 45.497890234567), true);
-        coClient.publishTaxiUpdate(new TaxiState("003", 25, 290, 80, -73.576234567890, 45.498901345678), true);
+        coClient.publishOpDone("0", TaxiOperationType.IDLING);
 
+        // 3.1 updating active Taxis
+        coClient.publishTaxiUpdate(new TaxiState("0", -73.575678, 45.497234, 80, 10, TaxiOperationType.REPOSITIONING));
+        coClient.publishTaxiUpdate(new TaxiState("1", -73.576890, 45.498567, 100, 50, TaxiOperationType.SERVICE));
+        coClient.publishTaxiUpdate(new TaxiState("2", -73.578123, 45.499890, 60, 20, TaxiOperationType.CHARGING));
+        coClient.publishTaxiUpdate(new TaxiState("3", -73.579456, 45.501123, 120, 5, TaxiOperationType.OTHER));
 //         3.2 updating active orders
         List<TaxiOrder> orderList1 = new ArrayList<>(List.of(
                 new TaxiOrder("001", -73.5673, 45.5017, -73.5615, 45.5086, new Date(), 2.3, 12.5),

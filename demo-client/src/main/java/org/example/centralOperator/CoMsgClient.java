@@ -3,14 +3,15 @@ package org.example.centralOperator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.DefaultConsumer;
-import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.*;
+import org.example.CoReqType;
+import org.example.CoResType;
 import org.example.RabbitMQConfig;
 import org.example.RabbitMQSetup;
 import org.example.order.TaxiOrder;
+import org.example.taxi.TaxiOperationType;
 import org.example.taxi.TaxiState;
 
 import java.io.IOException;
@@ -26,6 +27,8 @@ public class CoMsgClient {
     public CoMsgClient() {
         try {
             this.channel = RabbitMQSetup.getChannel();
+
+            listenCoMsg();
             listenMatchResponse();
             listenUpdateTaxiResponse();
             listenUpdateOrderResponse();
@@ -33,6 +36,67 @@ public class CoMsgClient {
             throw new RuntimeException("Error setting up CoMsgClient: " + e.getMessage(), e);
         }
     }
+
+    public void listenCoMsg() {
+        try {
+            DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+                String messageBody = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                String parsedMsg = objectMapper.readValue(messageBody, String.class);
+                System.out.println(" [x] Received message: " + parsedMsg);
+
+                try {
+                    // Parse the message as JSON
+                    JsonNode jsonNode = objectMapper.readTree(parsedMsg);
+
+                    // Ensure the "responseType" field exists
+                    if (!jsonNode.has("responseType")) {
+                        System.err.println(" [!] Missing 'responseType' field in message!");
+                        return;
+                    }
+
+                    try {
+                        String responseTypeStr = jsonNode.get("responseType").asText();
+                        CoResType responseType = CoResType.valueOf(responseTypeStr);
+
+                        handleResponse(responseType, jsonNode);
+
+                    } catch (IllegalArgumentException e) {
+                        System.err.println(" [!] invalid 'responseType': " + e.getMessage());
+                    }
+
+                } catch (Exception e) {
+                    System.err.println(" [!] Failed to process message: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            };
+
+            // Start consuming messages
+            System.out.println(" [x] listening co.responses... ");
+            channel.basicConsume(RabbitMQConfig.CO_RESPONSE_QUEUE, true, deliverCallback, consumerTag -> {
+            });
+
+        } catch (IOException e) {
+            System.err.println(" [!] Error connecting to RabbitMQ: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Process the message based on the responseType.
+     */
+    private void handleResponse(CoResType responseType, JsonNode jsonNode) {
+
+
+        switch (responseType) {
+            case NEW_TAXI_OPERATION:
+                System.out.println(" [✓] Processing NEW_TAXI_OPERATION response");
+                break;
+            default:
+                System.out.println(" [!] Unknown response type: " + responseType);
+                break;
+        }
+    }
+
 
     /**
      * Registers a single consumer for the response queue.
@@ -101,12 +165,12 @@ public class CoMsgClient {
         );
     }
 
-    public Map<String, List<Integer>> publishMatchReq(Map<String, Deque<Integer>> activeOrdersMap, Map<String, Set<Integer>> activeTaxisMap) {
+    public Map<String, List<Integer>> publishMatchReq() {
         String correlationId = UUID.randomUUID().toString();
 
         Map<String, Object> combinedMap = new HashMap<>();
-        combinedMap.put("activeOrders", activeOrdersMap);
-        combinedMap.put("activeTaxis", activeTaxisMap);
+//        combinedMap.put("activeOrders", activeOrdersMap);
+//        combinedMap.put("activeTaxis", activeTaxisMap);
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonMaps;
 
@@ -120,7 +184,6 @@ public class CoMsgClient {
 
         CompletableFuture<String> responseFuture = new CompletableFuture<>();
         responseMap.put(correlationId, responseFuture);
-
 
         try {
             // block, wait for response
@@ -146,12 +209,11 @@ public class CoMsgClient {
         }
     }
 
-    public void publishTaxiUpdate(TaxiState taxiState, boolean isToAdd) {
+    public void publishTaxiUpdate(TaxiState taxiState) {
         try {
             String correlationId = UUID.randomUUID().toString();
 
             Map<String, Object> messageData = new HashMap<>();
-            messageData.put("isToAdd", isToAdd);
             messageData.put("taxiState", taxiState);
             String jsonTaxiState = objectMapper.writeValueAsString(messageData);
 
@@ -223,6 +285,26 @@ public class CoMsgClient {
             }
         } catch (IOException e) {
             System.err.println("Error publishing TaxiState update: " + e.getMessage());
+        }
+    }
+
+    public void publishOpDone(String taxiId, TaxiOperationType opType) {
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("requestType", CoReqType.TAXI_OP_DONE);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("taxiId", taxiId);
+        payload.put("operationType", opType);
+        messageData.put("payload", payload);
+
+        try {
+            String msgJson = objectMapper.writeValueAsString(messageData);
+            this.publishMessage(msgJson, RabbitMQConfig.CO_REQUEST_ROUTING_KEY);
+
+        } catch (JsonProcessingException e) {
+            System.err.println("Error serializing messageData: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Error publishing publishOpDone: " + e.getMessage());
         }
     }
 
