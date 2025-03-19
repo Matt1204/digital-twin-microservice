@@ -10,6 +10,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitMQConfig {
+    public static final String CO_EXCHANGE = "co.exchange";
+
+    public static final String CO_REQUEST_QUEUE = "co.requests";
+    public static final String CO_RESPONSE_QUEUE = "co.responses";
+
     public static final String CO_MATCH_REQUEST_QUEUE = "co.match.requests";
     public static final String CO_MATCH_RESPONSE_QUEUE = "co.match.responses";
     public static final String CO_ACTIVE_TAXIS_UPDATE_REQUEST_QUEUE = "co.activeTaxis.update.requests";
@@ -17,16 +22,33 @@ public class RabbitMQConfig {
     public static final String CO_ACTIVE_ORDERS_UPDATE_REQUEST_QUEUE = "co.activeOrders.update.requests";
     public static final String CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE = "co.activeOrders.update.responses";
 
-    public static final String CO_EXCHANGE = "co.exchange";
 
     @Bean
     public Jackson2JsonMessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
-    /**
-     * Declare the request queue where Taxi clients publish their status.
-     */
+
+    @Bean
+    public Queue coRequestQueue() {
+        return new Queue(CO_REQUEST_QUEUE, true);
+    }
+
+    @Bean
+    public Queue coResponseQueue() {
+        return new Queue(CO_RESPONSE_QUEUE, true);
+    }
+
+    @Bean
+    public Binding coRequestBinding(Queue coRequestQueue, DirectExchange coExchange) {
+        return BindingBuilder.bind(coRequestQueue).to(coExchange).with(CO_REQUEST_QUEUE);
+    }
+
+    @Bean
+    public Binding coResponseBinding(Queue coResponseQueue, DirectExchange coExchange) {
+        return BindingBuilder.bind(coResponseQueue).to(coExchange).with(CO_RESPONSE_QUEUE);
+    }
+
     @Bean
     public Queue matchRequestQueue() {
         // durable = true to persist messages to disk
@@ -100,5 +122,5 @@ public class RabbitMQConfig {
     public Binding orderUpdateResponseBinding(Queue activeOrdersUpdateResponseQueue, DirectExchange coExchange) {
         return BindingBuilder.bind(activeOrdersUpdateResponseQueue).to(coExchange).with(CO_ACTIVE_ORDERS_UPDATE_RESPONSE_QUEUE);
     }
-}
 
+}

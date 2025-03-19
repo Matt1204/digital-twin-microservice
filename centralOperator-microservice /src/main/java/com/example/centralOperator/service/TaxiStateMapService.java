@@ -12,34 +12,30 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-public class ActiveTaxisService {
+public class TaxiStateMapService {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private static final Logger logger = LoggerFactory.getLogger(ActiveTaxisService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TaxiStateMapService.class);
 
     @Autowired
-    private ActiveTaxis activeTaxis;
+    private TaxiStateMap taxiStateMap;
 
     public void handleUpdateActiveTaxi(String jsonMsg) {
+        System.out.println("----- TaxiStateMap Update Start -----");
         try {
             Map<String, Object> parsedMap = objectMapper.readValue(
                     jsonMsg, new TypeReference<Map<String, Object>>() {
                     });
 
-            if (parsedMap == null || !parsedMap.containsKey("isToAdd") || !parsedMap.containsKey("taxiState")) {
-                logger.error("Invalid input JSON: Missing isToAdd or taxiState.");
+            if (parsedMap == null || !parsedMap.containsKey("taxiState")) {
+                logger.error("Invalid input JSON: Missing taxiState.");
                 return;
             }
-            boolean isToAdd = (Boolean) parsedMap.get("isToAdd");
+            // boolean isToAdd = (Boolean) parsedMap.get("isToAdd");
             TaxiState taxiState = objectMapper.convertValue(parsedMap.get("taxiState"), TaxiState.class);
+            taxiStateMap.addUpdateTaxi(taxiState);
 
-            if (isToAdd) {
-                activeTaxis.addActiveTaxi(taxiState);
-            } else {
-                activeTaxis.removeActiveTaxiById(taxiState.getTaxiId());
-            }
-
-            System.out.println("----- activeTaxis Update -----");
-            activeTaxis.printActiveTaxis();
+            // taxiStateMap.printTaxisStateMap();
+            System.out.println("----- TaxiStateMap Update Done -----");
         } catch (JsonProcessingException e) {
             logger.error("Failed to convert result to JSON", e);
             return;

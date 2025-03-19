@@ -1,14 +1,14 @@
 package com.example.centralOperator.listener;
 
 import com.example.centralOperator.config.RabbitMQConfig;
-import com.example.centralOperator.service.ActiveTaxisService;
+import com.example.centralOperator.service.TaxiStateMapService;
+import com.example.centralOperator.publisher.MessagePublisherService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,10 +20,11 @@ public class CoTaxiUpdateListener {
     private static final Logger logger = LoggerFactory.getLogger(CoTaxiUpdateListener.class);
 
     @Autowired
-    private ActiveTaxisService activeTaxisService;
+    private TaxiStateMapService taxiStateMapService;
 
     @Autowired
-    private RabbitTemplate rabbitTemplate;
+    private MessagePublisherService messagePublisherService;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -39,22 +40,17 @@ public class CoTaxiUpdateListener {
             }
 
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8);
-            System.out.println("** activeTaxi Listener Received: " + jsonString);
+//            System.out.println("** taxiStateMap Listener Received: " + jsonString);
 
-            activeTaxisService.handleUpdateActiveTaxi(jsonString);
+            taxiStateMapService.handleUpdateActiveTaxi(jsonString);
 
             String resJson = objectMapper.writeValueAsString("UPDATE_DONE");
-            rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.CO_EXCHANGE, // exchange
-                    RabbitMQConfig.CO_ACTIVE_TAXIS_UPDATE_RESPONSE_QUEUE, // routing_key
+
+            messagePublisherService.publishMessageWithCorrelationId(
+                    RabbitMQConfig.CO_ACTIVE_TAXIS_UPDATE_RESPONSE_QUEUE,
                     resJson,
-                    messagePostProcessor -> {
-                        messagePostProcessor.getMessageProperties().setCorrelationId(correlationId);
-                        messagePostProcessor.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
-                        return messagePostProcessor;
-                    }
+                    correlationId
             );
-            System.out.println("** activeTaxi response: " + resJson);
 
         } catch (Exception e) {
             logger.error("Failed to process taxi update message", e);
