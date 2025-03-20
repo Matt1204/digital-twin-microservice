@@ -41,24 +41,24 @@ public class Main {
         // 3. CO Microservice
         CoMsgClient coClient = new CoMsgClient();
 
-        coClient.publishOpDone("0", TaxiOperationType.IDLING);
+        coClient.publishOpDone("0", TaxiOperationType.SERVICE);
 
         // 3.1 updating active Taxis
-        coClient.publishTaxiUpdate(new TaxiState("0", -73.575678, 45.497234, 80, 10, TaxiOperationType.REPOSITIONING));
-        coClient.publishTaxiUpdate(new TaxiState("1", -73.576890, 45.498567, 100, 50, TaxiOperationType.SERVICE));
-        coClient.publishTaxiUpdate(new TaxiState("2", -73.578123, 45.499890, 60, 20, TaxiOperationType.CHARGING));
-        coClient.publishTaxiUpdate(new TaxiState("3", -73.579456, 45.501123, 120, 5, TaxiOperationType.OTHER));
+//        coClient.publishTaxiUpdate(new TaxiState("0", -73.575678, 45.497234, 80, 10, TaxiOperationType.REPOSITIONING));
+//        coClient.publishTaxiUpdate(new TaxiState("1", -73.576890, 45.498567, 100, 50, TaxiOperationType.SERVICE));
+//        coClient.publishTaxiUpdate(new TaxiState("2", -73.578123, 45.499890, 60, 20, TaxiOperationType.CHARGING));
+//        coClient.publishTaxiUpdate(new TaxiState("3", -73.579456, 45.501123, 120, 5, TaxiOperationType.OTHER));
 //         3.2 updating active orders
-        List<TaxiOrder> orderList1 = new ArrayList<>(List.of(
-                new TaxiOrder("001", -73.5673, 45.5017, -73.5615, 45.5086, new Date(), 2.3, 12.5),
-                new TaxiOrder("004", -73.5689, 45.5025, -73.5642, 45.5098, new Date(), 3.1, 15.0),
-                new TaxiOrder("003", -73.5702, 45.5039, -73.5655, 45.5112, new Date(), 1.8, 10.0)
-        ));
-        List<TaxiOrder> orderList2 = new ArrayList<>(List.of(
-                new TaxiOrder("002", -73.5721, 45.5052, -73.5674, 45.5135, new Date(), 4.2, 20.0),
-                new TaxiOrder("005", -73.5735, 45.5068, -73.5689, 45.5149, new Date(), 2.7, 14.5)
-        ));
-        coClient.publishOrdersUpdate(orderList2);
+//        List<TaxiOrder> orderList1 = new ArrayList<>(List.of(
+//                new TaxiOrder("001", -73.5673, 45.5017, -73.5615, 45.5086, new Date(), 2.3, 12.5),
+//                new TaxiOrder("004", -73.5689, 45.5025, -73.5642, 45.5098, new Date(), 3.1, 15.0),
+//                new TaxiOrder("003", -73.5702, 45.5039, -73.5655, 45.5112, new Date(), 1.8, 10.0)
+//        ));
+//        List<TaxiOrder> orderList2 = new ArrayList<>(List.of(
+//                new TaxiOrder("002", -73.5721, 45.5052, -73.5674, 45.5135, new Date(), 4.2, 20.0),
+//                new TaxiOrder("005", -73.5735, 45.5068, -73.5689, 45.5149, new Date(), 2.7, 14.5)
+//        ));
+//        coClient.publishOrdersUpdate(orderList2);
 //
 //        Map<String, Deque<Integer>> activeOrdersMap = new HashMap<>();
 //        activeOrdersMap.put("1", new ArrayDeque<>(Arrays.asList(1, 2, 3, 4)));

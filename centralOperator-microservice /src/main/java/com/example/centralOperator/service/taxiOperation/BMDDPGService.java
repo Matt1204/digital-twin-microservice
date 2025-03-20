@@ -3,6 +3,9 @@ package com.example.centralOperator.service.taxiOperation;
 import com.example.centralOperator.config.RabbitMQConfig;
 import com.example.centralOperator.model.CoResType;
 import com.example.centralOperator.model.TaxiOrder;
+import com.example.centralOperator.model.taxiOperation.IdlingOperationDTO;
+import com.example.centralOperator.model.taxiOperation.ReposOperationDTO;
+import com.example.centralOperator.model.taxiOperation.ServiceOperationDTO;
 import com.example.centralOperator.model.taxiOperation.TaxiOperationType;
 import com.example.centralOperator.publisher.MessagePublisherService;
 import com.example.centralOperator.service.ActiveOrders;
@@ -11,10 +14,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class BMDDPGService {
@@ -51,19 +52,18 @@ public class BMDDPGService {
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("responseType", CoResType.NEW_TAXI_OPERATION);
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("taxiId", taxiId);
-        payload.put("operationType", TaxiOperationType.REPOSITIONING);
-
-        // generate random coordinate in NYC
+        // generate random coordinate in NYC. DUMMY data
         double minLat = 40.477399; // Minimum latitude for NYC
         double maxLat = 40.917577; // Maximum latitude for NYC
         double minLon = -74.259090; // Minimum longitude for NYC
         double maxLon = -73.700272; // Maximum longitude for NYC
         double randomLat = minLat + (Math.random() * (maxLat - minLat));
         double randomLon = minLon + (Math.random() * (maxLon - minLon));
-        payload.put("toLat", randomLat);
-        payload.put("toLon", randomLon);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("taxiId", taxiId);
+        payload.put("operationType", TaxiOperationType.REPOSITIONING);
+        payload.put("operationData", new ReposOperationDTO(randomLat, randomLon));
 
         messageData.put("payload", payload);
 
@@ -87,7 +87,7 @@ public class BMDDPGService {
         if (order != null) {
             String matchedOrderId = order.getOrderId();
             activeOrders.removeActiveOrder(order);
-            payload.put("orderId", matchedOrderId);
+            payload.put("operationData", new ServiceOperationDTO(matchedOrderId));
 
         } else {
             System.out.println("No active orders available for matchmaking.");
@@ -109,13 +109,14 @@ public class BMDDPGService {
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("responseType", CoResType.NEW_TAXI_OPERATION);
 
+        IdlingOperationDTO idlingOperationDTO = new IdlingOperationDTO(60);
+
         Map<String, Object> payload = new HashMap<>();
-        payload.put("taxiId", taxiId);
         payload.put("operationType", TaxiOperationType.IDLING);
-
-        payload.put("idleTime", 60);
-
+        payload.put("taxiId", taxiId);
+        payload.put("operationData", idlingOperationDTO);
         messageData.put("payload", payload);
+
         try {
             String msgJson = objectMapper.writeValueAsString(messageData);
             messagePublisherService.publishMessage(RabbitMQConfig.CO_RESPONSE_QUEUE, msgJson);
