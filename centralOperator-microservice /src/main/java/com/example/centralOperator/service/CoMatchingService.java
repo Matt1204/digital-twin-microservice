@@ -92,15 +92,15 @@ public class CoMatchingService {
         }
     }
 
-    public String simpleMatch() {
+    public Map<String, List<String>> demoSimpleMatch(List<TaxiState> taxiList, List<TaxiOrder> orderList) {
         System.out.println("----------- simpleMatch() -----------");
-        List<TaxiOrder> ordersCopy = activeOrders.getActiveOrders();
-        List<TaxiState> taxisCopy = activeTaxis.getActiveTaxis();
-        System.out.println("activeTaxis: " + activeTaxis.getActiveTaxisId());
-        System.out.println("activeOrders: " + activeOrders.getActiveOrdersId());
+//        List<TaxiOrder> orderList = activeOrders.getActiveOrders();
+//        List<TaxiState> taxiList = activeTaxis.getActiveTaxis();
+//        System.out.println("activeTaxis: " + activeTaxis.getActiveTaxisId());
+//        System.out.println("activeOrders: " + activeOrders.getActiveOrdersId());
 
-        Iterator<TaxiOrder> orderIterator = ordersCopy.iterator();
-        Iterator<TaxiState> taxiIterator = taxisCopy.iterator();
+        Iterator<TaxiOrder> orderIterator = orderList.iterator();
+        Iterator<TaxiState> taxiIterator = taxiList.iterator();
         // Perform taxi-to-order matching
         List<String> matchedOrdersId = new ArrayList<>();
         List<String> matchedTaxisId = new ArrayList<>();
@@ -113,27 +113,11 @@ public class CoMatchingService {
             System.out.println(String.format("Taxi {} --> Order {}", taxi.getTaxiId(), order.getOrderId()));
         }
 
-        try {
-            // Prepare result
-            Map<String, List<String>> result = new HashMap<>();
-            result.put("matchedOrders", matchedOrdersId);
-            result.put("matchedTaxis", matchedTaxisId);
+        Map<String, List<String>> result = new HashMap<>();
+        result.put("matchedOrders", matchedOrdersId);
+        result.put("matchedTaxis", matchedTaxisId);
 
-            System.out.println("----- new activeTaxis:");
-            activeTaxis.printActiveTaxis();
-            System.out.println("----- new activeOrders: ");
-            System.out.println(activeOrders.printActiveOrders());
+        return result;
 
-            this.activeTaxis.removeActiveTaxiList(matchedTaxisId);
-            this.activeOrders.removeActiveOrderList(matchedOrdersId);
-
-            // Convert to JSON and return
-            String resJson = objectMapper.writeValueAsString(result);
-            return resJson;
-
-        } catch (JsonProcessingException e) {
-            logger.error("Failed to convert result to JSON", e);
-            return "{}";
-        }
     }
 }

@@ -55,7 +55,9 @@ public class CoMatchingListener {
             }
 
 //            String resJson = coMatchingService.matchTaxiToOrder(jsonString);
-            String resJson = coMatchingService.simpleMatch();
+//            String resJson = coMatchingService.demoSimpleMatch();
+
+            String resJson = objectMapper.writeValueAsString("DUMMY_MATCH_DEPRECATED");
 
             // Send response using RabbitTemplate's JSON conversion
             rabbitTemplate.convertAndSend(

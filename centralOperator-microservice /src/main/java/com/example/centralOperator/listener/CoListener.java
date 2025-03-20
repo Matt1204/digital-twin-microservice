@@ -2,9 +2,10 @@ package com.example.centralOperator.listener;
 
 import com.example.centralOperator.config.RabbitMQConfig;
 import com.example.centralOperator.model.CoReqType;
+import com.example.centralOperator.service.taxiOperation.BMDDPGService;
 import com.example.centralOperator.service.taxiOperation.TaxiOperationService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode; // Added import
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -22,6 +23,9 @@ public class CoListener {
 
     @Autowired
     private TaxiOperationService taxiOperationService;
+
+    @Autowired
+    private BMDDPGService bmddpgService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -56,6 +60,10 @@ public class CoListener {
                         logger.info("** Handling TAXI_OP_DONE request");
                         JsonNode payloadNode = jsonNode.get("payload");
                         taxiOperationService.onTaxiOpDone(payloadNode);
+                        break;
+                    case BMDDPG_WINDOW_STARTS:
+                        logger.info("** Handling BMDDPG_WINDOW_STARTS request");
+                        bmddpgService.handleTriggerAlgorithm();
                         break;
                     default:
                         logger.warn("** Unhandled request type: " + requestType);
