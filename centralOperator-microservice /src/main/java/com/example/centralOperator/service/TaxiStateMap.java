@@ -1,5 +1,6 @@
 package com.example.centralOperator.service;
 import com.example.centralOperator.model.TaxiState;
+import com.example.centralOperator.model.taxiOperation.TaxiOperationType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,15 @@ public class TaxiStateMap {
 
     private final Map<String, TaxiState> taxiStateMap = new ConcurrentHashMap<>();
 
-    // Retrieve all active taxis
-    public List<TaxiState> getTaxiStateMap() {
-        return List.copyOf(taxiStateMap.values());
+    // Retrieve all active taxis as a copy of the map
+    public Map<String, TaxiState> getTaxiStateMap() {
+        return new ConcurrentHashMap<>(taxiStateMap);
+    }
+
+    public Map<String, TaxiState> getIdlingTaxis() {
+        return taxiStateMap.entrySet().stream()
+                .filter(entry -> entry.getValue().getOperation() == TaxiOperationType.IDLING)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     // Add or update a taxi in the map

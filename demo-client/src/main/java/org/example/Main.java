@@ -41,13 +41,15 @@ public class Main {
         // 3. CO Microservice
         CoMsgClient coClient = new CoMsgClient();
 
-        coClient.publishOpDone("0", TaxiOperationType.SERVICE);
-
         // 3.1 updating active Taxis
-//        coClient.publishTaxiUpdate(new TaxiState("0", -73.575678, 45.497234, 80, 10, TaxiOperationType.REPOSITIONING));
-//        coClient.publishTaxiUpdate(new TaxiState("1", -73.576890, 45.498567, 100, 50, TaxiOperationType.SERVICE));
-//        coClient.publishTaxiUpdate(new TaxiState("2", -73.578123, 45.499890, 60, 20, TaxiOperationType.CHARGING));
-//        coClient.publishTaxiUpdate(new TaxiState("3", -73.579456, 45.501123, 120, 5, TaxiOperationType.OTHER));
+        coClient.publishTaxiUpdate(new TaxiState("0", -73.575678, 45.497234, 80, 10, TaxiOperationType.IDLING));
+        coClient.publishTaxiUpdate(new TaxiState("1", -73.576890, 45.498567, 100, 50, TaxiOperationType.REPOSITIONING));
+        coClient.publishTaxiUpdate(new TaxiState("2", -73.578123, 45.499890, 60, 20, TaxiOperationType.IDLING));
+        coClient.publishTaxiUpdate(new TaxiState("3", -73.579456, 45.501123, 120, 5, TaxiOperationType.IDLING));
+
+        coClient.publishBMDDPGWindowStarts();
+        //coClient.publishOpDone("0", TaxiOperationType.SERVICE);
+
 //         3.2 updating active orders
 //        List<TaxiOrder> orderList1 = new ArrayList<>(List.of(
 //                new TaxiOrder("001", -73.5673, 45.5017, -73.5615, 45.5086, new Date(), 2.3, 12.5),

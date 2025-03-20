@@ -165,47 +165,18 @@ public class CoMsgClient {
         );
     }
 
-    public Map<String, List<Integer>> publishMatchReq() {
-        String correlationId = UUID.randomUUID().toString();
-
-        Map<String, Object> combinedMap = new HashMap<>();
-//        combinedMap.put("activeOrders", activeOrdersMap);
-//        combinedMap.put("activeTaxis", activeTaxisMap);
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jsonMaps;
+    public void publishBMDDPGWindowStarts() {
+        Map<String, Object> messageData = new HashMap<>();
+        messageData.put("requestType", CoReqType.BMDDPG_WINDOW_STARTS);
 
         try {
-            jsonMaps = objectMapper.writeValueAsString(combinedMap);
-            System.out.println("Serialized JSON: " + jsonMaps);
-            publishCorrelationMessage(correlationId, jsonMaps, RabbitMQConfig.CO_MATCH_REQUEST_ROUTING_KEY);
-        } catch (IOException e) {
-            System.err.println("Error publishing CO maps: " + e.getMessage());
-        }
+            String msgJson = objectMapper.writeValueAsString(messageData);
+            this.publishMessage(msgJson, RabbitMQConfig.CO_REQUEST_ROUTING_KEY);
 
-        CompletableFuture<String> responseFuture = new CompletableFuture<>();
-        responseMap.put(correlationId, responseFuture);
-
-        try {
-            // block, wait for response
-            String stringifiedJson = responseFuture.get(5, TimeUnit.SECONDS);
-            System.out.println("CO Match raw JSON: " + stringifiedJson);
-            String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
-//            System.out.println("CO parsed json: " + parsedJson);
-
-            Map<String, List<Integer>> matchingMap = objectMapper.readValue(parsedJson, new TypeReference<Map<String, List<Integer>>>() {
-            });
-            return matchingMap;
-
-        } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (TimeoutException e) {
-            throw new RuntimeException(e);
+            System.err.println("Error serializing messageData: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Error publishing publishOpDone: " + e.getMessage());
         }
     }
 
