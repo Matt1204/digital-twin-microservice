@@ -42,7 +42,7 @@ public class CoMsgClient {
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
                 String messageBody = new String(delivery.getBody(), StandardCharsets.UTF_8);
                 String parsedMsg = objectMapper.readValue(messageBody, String.class);
-                System.out.println(" [x] Received message: " + parsedMsg);
+                System.out.println(" [x] Received raw message: " + parsedMsg);
 
                 try {
                     // Parse the message as JSON
