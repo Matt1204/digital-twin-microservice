@@ -1,0 +1,59 @@
+# Ignore macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Ignore IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+
+# Ignore Maven target directories
+target/
+!src/main/**/target/
+!src/test/**/target/
+
+# Ignore logs and temp files
+logs/
+*.log
+*.tmp
+hs_err_pid*
+
+# Ignore build artifacts
+*.jar
+*.war
+*.ear
+
+# Ignore dependency caches
+.mvn/
+.m2/repository/
+
+# Ignore OS-specific files
+Thumbs.db
+
+# Ignore data files
+*.csv
+*.db
+*.sqlite
+*.tsv
+*.dat
+*.mdb
+*.log
+
+# Ignore environment files
+.env
+.env.local
+.env.*
+
+# Ignore Docker and Kubernetes files
+.dockerignore
+docker-compose.override.yml
+
+# Ignore Node.js files (if frontend exists in repo)
+node_modules/
+.npm/
+
+# Ignore temporary files
+*.swp
+*.swo
+*.bak
