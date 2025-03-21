@@ -25,7 +25,6 @@ public class CoOrderUpdateListener {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-
     @Autowired
     private ObjectMapper objectMapper;
 
