@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class ActiveOrders {
@@ -36,19 +36,19 @@ public class ActiveOrders {
         activeOrders.removeIf(order -> order.getOrderId().equals(orderId));
     }
 
-    public void removeActiveOrderList(List<String> orderIdList){
+    public void removeActiveOrderList(List<String> orderIdList) {
         orderIdList.forEach(orderId -> {
             this.removeActiveOrderById(orderId);
         });
     }
 
-    public String printActiveOrders() {
+    public void printActiveOrders() {
         if (activeOrders.isEmpty()) {
-            return "No active orders available.";
+            System.out.println("No active orders available.");
         } else {
             StringBuilder content = new StringBuilder("Active Orders:\n");
             activeOrders.forEach(order -> content.append(order).append("\n"));
-            return content.toString();
+            System.out.println(content.toString());
         }
     }
 
@@ -71,5 +71,10 @@ public class ActiveOrders {
         Random random = new Random();
         int index = random.nextInt(getActiveOrdersCount());
         return activeOrders.get(index);
+    }
+
+    // Clear all active orders
+    public void initializeActiveOrders() {
+        activeOrders.clear();
     }
 }

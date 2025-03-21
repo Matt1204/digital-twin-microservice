@@ -2,8 +2,12 @@ package com.example.centralOperator.listener;
 
 import com.example.centralOperator.config.RabbitMQConfig;
 import com.example.centralOperator.model.CoReqType;
+import com.example.centralOperator.model.CoResType;
+import com.example.centralOperator.publisher.MessagePublisherService;
+import com.example.centralOperator.service.CoInitService;
 import com.example.centralOperator.service.taxiOperation.BMDDPGService;
 import com.example.centralOperator.service.taxiOperation.TaxiOperationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -15,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class CoListener {
@@ -28,7 +34,13 @@ public class CoListener {
     private BMDDPGService bmddpgService;
 
     @Autowired
+    private CoInitService coInitService;
+
+    @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    MessagePublisherService messagePublisherService;
 
     @RabbitListener(queues = RabbitMQConfig.CO_REQUEST_QUEUE)
     public void listenCoRequest(Message message) {
@@ -64,6 +76,10 @@ public class CoListener {
                     case BMDDPG_WINDOW_STARTS:
                         logger.info("** Handling BMDDPG_WINDOW_STARTS request");
                         bmddpgService.handleTriggerAlgorithm();
+                        break;
+                    case CO_INIT:
+                        logger.info("** Handling CO_INIT request");
+                        coInitService.handleCoInit(correlationId, jsonNode);
                         break;
                     default:
                         logger.warn("** Unhandled request type: " + requestType);

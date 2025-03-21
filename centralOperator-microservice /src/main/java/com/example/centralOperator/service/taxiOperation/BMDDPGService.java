@@ -9,6 +9,7 @@ import com.example.centralOperator.service.CoMatchingService;
 import com.example.centralOperator.service.TaxiStateMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -39,23 +40,47 @@ public class BMDDPGService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /*
+     * This is the entry point of the BMDDPG algorithm
+     * this method will be invoked when every time windows begins
+     * */
     public void handleTriggerAlgorithm() {
-
+        if (!taxiStateMap.hasAnyTaxiState()) {
+            System.err.println("No TaxiState for BMDDPG, abort");
+            return;
+        }
+        // all the taxis to be repositioned/mathched
         Map<String, TaxiState> taxisToUse = taxiStateMap.getIdlingTaxis();
+        // all the orders to be matched
         List<TaxiOrder> ordersToUse = activeOrders.getActiveOrders();
 
-        // Generate Repositioning Result
+        // Calculate Repositioning Result.
+        // write your own implementation here, just make sure the return type is same
         Map<String, ReposOperationDTO> repositionResult = handleRepositionAlgo(taxisToUse);
 
-        // Generating Matching Result
+        // Calculate Repositioning Result.
+        // write your own implementation here, just make sure the return type is same
         Map<String, List<String>> matchingResult = handleMatchingAlgo(taxisToUse, ordersToUse);
 
+        // Not your concern
         handleReposResults(repositionResult);
         handleMatchingResults(matchingResult);
         taxiOperationSequence.printTaxiOperationSequence();
+
+        taxisToUse.forEach((key, val) -> {
+            performOpInSequence(key);
+        });
     }
 
+    /*
+     * Implement your Repositioning algorithm here
+     * you can have whatever implementation you want, just make sure the return data is same.
+     * Return type is a Map:
+     * Key: taxiId (String)
+     * Value: ReposOperationDTO class. generated using coordinates of reposition destination
+     * */
     private Map<String, ReposOperationDTO> handleRepositionAlgo(Map<String, TaxiState> taxiStateMap) {
+        // remove dummy code below
         Map<String, ReposOperationDTO> repositionResults = new HashMap<>();
 
         taxiStateMap.entrySet().stream().forEach(entry -> {
@@ -67,6 +92,21 @@ public class BMDDPGService {
         return repositionResults;
     }
 
+    /*
+     * Implement your Match-Making algorithm here
+     * you can have whatever implementation you want, just make sure the return data is same.
+     * Return type is a Map, this Map must have 2 entries:
+     * entry 1: key="matchedOrders", value = a list of orderId
+     * entry 2: key="matchedTaxis", value = a list of taxiId
+     * Example:
+     * {
+     *  "matchedOrders" => ["2", "6", "10"]
+     *  "matchedTaxis" => ["46", "700", "9"]
+     * }
+     * order 2 match to taxi 46, order 6 match to taxi 700...
+     *
+     * So, matchedOrders and matchedTaxis should have exact same length
+     * */
     private Map<String, List<String>> handleMatchingAlgo(Map<String, TaxiState> taxiStateMap, List<TaxiOrder> orderList) {
         List<TaxiState> taxiStateList = taxiStateMap.values().stream().toList();
         Map<String, List<String>> matchedResult = coMatchingService.demoSimpleMatch(taxiStateList, orderList);
@@ -78,16 +118,15 @@ public class BMDDPGService {
         reposResults.forEach((taxiId, reposOperation) ->
                 taxiOperationSequence.enqueueOperation(taxiId, reposOperation)
         );
-        taxiOperationSequence.printTaxiOperationSequence();
+        // taxiOperationSequence.printTaxiOperationSequence();
     }
 
+    // 1 adding Operation to sequence
+    // 2 removing orders from activeOrders
     private void handleMatchingResults(Map<String, List<String>> matchingResult) {
-        // 1 adding Operation to sequence
-        // 2 removing orders from activeOrders
         if (!matchingResult.containsKey("matchedOrders") || !matchingResult.containsKey("matchedTaxis")) {
             System.err.println("handleMatchingResults() wrong data structure given");
         }
-
         List<String> matchedTaxis = matchingResult.get("matchedTaxis");
         List<String> matchedOrders = matchingResult.get("matchedOrders");
 
@@ -96,9 +135,9 @@ public class BMDDPGService {
             return;
         }
 
+        System.out.println("----------- handleMatchingResults() -----------");
         Iterator<String> ordersIterator = matchedOrders.iterator();
         Iterator<String> taxisIterator = matchedTaxis.iterator();
-
         while (ordersIterator.hasNext() && taxisIterator.hasNext()) {
             String orderId = ordersIterator.next();
             String taxiId = taxisIterator.next();
@@ -113,29 +152,51 @@ public class BMDDPGService {
 
     public void handleTaxiOpDone(String taxiId, TaxiOperationType operationType) {
         if (taxiOperationSequence.getQueueSize(taxiId) != 0) {
-            TaxiOperationDTO nextOp = taxiOperationSequence.dequeueOperation(taxiId);
-            // !!!!!!!!!!!!!!!!!!!!!!!!!
-            // perform nextOp
-
-        }
-
-        switch (operationType) {
-            case TaxiOperationType.IDLING -> {
-                System.out.println("BMDDPG: handle Idling_done.");
-                handleIdlingDone(taxiId);
-                break;
-            }
-            case TaxiOperationType.REPOSITIONING -> {
-                System.out.println("BMDDPG: handle Repositioning_done.");
-                handleRepositioningDone(taxiId);
-                break;
-            }
-            case TaxiOperationType.SERVICE -> {
-                handleServiceDone(taxiId);
-                System.out.println("BMDDPG: handle Service_done.");
-                break;
+            performOpInSequence(taxiId);
+        } else {
+            System.out.println("No Op in sequence for taxi " + taxiId);
+            switch (operationType) {
+                case TaxiOperationType.IDLING -> {
+                    System.out.println("BMDDPG: handle Idling_done.");
+                    handleIdlingDone(taxiId);
+                    break;
+                }
+                case TaxiOperationType.REPOSITIONING -> {
+                    System.out.println("BMDDPG: handle Repositioning_done.");
+                    handleRepositioningDone(taxiId);
+                    break;
+                }
+                case TaxiOperationType.SERVICE -> {
+                    handleServiceDone(taxiId);
+                    System.out.println("BMDDPG: handle Service_done.");
+                    break;
+                }
             }
         }
+    }
+
+    private void performOpInSequence(String taxiId) {
+        System.out.println("Op Sequence Hit for taxi " + taxiId);
+        taxiOperationSequence.printTaxiOperationSequence();
+        TaxiOperationDTO taxiOperationDTO = taxiOperationSequence.dequeueOperation(taxiId);
+        taxiOperationSequence.printTaxiOperationSequence();
+
+        if (taxiOperationDTO instanceof IdlingOperationDTO idlingOperationDTO) {
+            // Handle idling operation
+            System.out.println("This is an IdlingOperationDTO: " + idlingOperationDTO);
+            taxiOperationPublisher.publishIdlingOperation(taxiId, idlingOperationDTO);
+        } else if (taxiOperationDTO instanceof ReposOperationDTO reposOperationDTO) {
+            // Handle repositioning operation
+            System.out.println("This is a ReposOperationDTO: " + reposOperationDTO);
+            taxiOperationPublisher.publishReposOperation(taxiId, reposOperationDTO);
+        } else if (taxiOperationDTO instanceof ServiceOperationDTO serviceOperationDTO) {
+            // Handle service operation
+            System.out.println("This is a ServiceOperationDTO: " + serviceOperationDTO);
+            taxiOperationPublisher.publishServiceOperation(taxiId, serviceOperationDTO);
+        } else {
+            System.err.println("Unknown TaxiOperationDTO type");
+        }
+
     }
 
     private ReposOperationDTO demoGenerateReposOp() {
@@ -150,36 +211,27 @@ public class BMDDPGService {
     }
 
     private void handleIdlingDone(String taxiId) {
-        // generate random coordinate in NYC. DUMMY data
-        double minLat = 40.477399; // Minimum latitude for NYC
-        double maxLat = 40.917577; // Maximum latitude for NYC
-        double minLon = -74.259090; // Minimum longitude for NYC
-        double maxLon = -73.700272; // Maximum longitude for NYC
-        double randomLat = minLat + (Math.random() * (maxLat - minLat));
-        double randomLon = minLon + (Math.random() * (maxLon - minLon));
-
-        taxiOperationPublisher.publishReposOperation(taxiId, new ReposOperationDTO(randomLat, randomLon));
+//        taxiOperationPublisher.publishReposOperation(taxiId, demoGenerateReposOp());
+        taxiOperationPublisher.publishIdlingOperation(taxiId, new IdlingOperationDTO(120));
     }
 
     private void handleRepositioningDone(String taxiId) {
-
-        TaxiOrder order = activeOrders.getRandomActiveOrder();
-        if (order != null) {
-            String matchedOrderId = order.getOrderId();
-            activeOrders.removeActiveOrder(order);
-
-            taxiOperationPublisher.publishServiceOperation(taxiId, new ServiceOperationDTO(matchedOrderId));
-
-        } else {
-            System.out.println("No active orders available for matchmaking.");
-            return;
-        }
+        taxiOperationPublisher.publishIdlingOperation(taxiId, new IdlingOperationDTO(120));
+//        TaxiOrder order = activeOrders.getRandomActiveOrder();
+//        if (order != null) {
+//            String matchedOrderId = order.getOrderId();
+//            activeOrders.removeActiveOrder(order);
+//
+//            taxiOperationPublisher.publishServiceOperation(taxiId, new ServiceOperationDTO(matchedOrderId));
+//
+//        } else {
+//            System.out.println("No active orders available for matchmaking.");
+//            return;
+//        }
     }
 
     private void handleServiceDone(String taxiId) {
-        IdlingOperationDTO idlingOperationDTO = new IdlingOperationDTO(60);
-
-        taxiOperationPublisher.publishIdlingOperation(taxiId, idlingOperationDTO);
+        taxiOperationPublisher.publishIdlingOperation(taxiId, new IdlingOperationDTO(120));
     }
 
 }
