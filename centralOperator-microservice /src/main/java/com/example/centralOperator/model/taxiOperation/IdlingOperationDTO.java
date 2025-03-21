@@ -1,6 +1,6 @@
 package com.example.centralOperator.model.taxiOperation;
 
-public class IdlingOperationDTO {
+public class IdlingOperationDTO implements TaxiOperationDTO {
     private int idleTime;
 
     public IdlingOperationDTO() {}
@@ -15,5 +15,12 @@ public class IdlingOperationDTO {
 
     public void setIdleTime(int idleTime) {
         this.idleTime = idleTime;
+    }
+
+    @Override
+    public String toString() {
+        return "IdlingOperationDTO{" +
+                "idleTime=" + idleTime +
+                '}';
     }
 }

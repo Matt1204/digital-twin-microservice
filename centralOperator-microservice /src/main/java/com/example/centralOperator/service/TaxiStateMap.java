@@ -1,5 +1,6 @@
 package com.example.centralOperator.service;
 import com.example.centralOperator.model.TaxiState;
+import com.example.centralOperator.model.taxiOperation.TaxiOperationType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,9 +13,15 @@ public class TaxiStateMap {
 
     private final Map<String, TaxiState> taxiStateMap = new ConcurrentHashMap<>();
 
-    // Retrieve all active taxis
-    public List<TaxiState> getTaxiStateMap() {
-        return List.copyOf(taxiStateMap.values());
+    // Retrieve all active taxis as a copy of the map
+    public Map<String, TaxiState> getTaxiStateMap() {
+        return new ConcurrentHashMap<>(taxiStateMap);
+    }
+
+    public Map<String, TaxiState> getIdlingTaxis() {
+        return taxiStateMap.entrySet().stream()
+                .filter(entry -> entry.getValue().getOperation() == TaxiOperationType.IDLING)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     // Add or update a taxi in the map
@@ -34,7 +41,7 @@ public class TaxiStateMap {
 
     // Remove a taxi from the map
     public void removeTaxi(TaxiState taxiState) {
-        taxiStateMap.remove(taxiState.getTaxiId());
+        taxiStateMap.remove(taxiState.getTaxiId(), taxiState);
     }
 
     // Remove a taxi by ID
@@ -51,6 +58,11 @@ public class TaxiStateMap {
         return taxiStateMap.containsKey(taxiId);
     }
 
+    // Check if the map contains any TaxiState data
+    public boolean hasAnyTaxiState() {
+        return !taxiStateMap.isEmpty();
+    }
+
     // Print all active taxis in a key-value format
     public void printTaxisStateMap() {
         if (taxiStateMap.isEmpty()) {
@@ -64,5 +76,9 @@ public class TaxiStateMap {
 
     public List<String> getTaxiIdList() {
         return taxiStateMap.keySet().stream().collect(Collectors.toList());
+    }
+
+    public void initializeMap() {
+        taxiStateMap.clear();
     }
 }

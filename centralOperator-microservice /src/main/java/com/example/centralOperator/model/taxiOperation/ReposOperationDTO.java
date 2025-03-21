@@ -1,10 +1,11 @@
 package com.example.centralOperator.model.taxiOperation;
 
-public class ReposOperationDTO {
+public class ReposOperationDTO implements TaxiOperationDTO {
     private double toLat;
     private double toLon;
 
-    public ReposOperationDTO(){}
+    public ReposOperationDTO() {
+    }
 
     public ReposOperationDTO(double toLat, double toLon) {
         this.toLat = toLat;
@@ -25,5 +26,13 @@ public class ReposOperationDTO {
 
     public void setToLon(double toLon) {
         this.toLon = toLon;
+    }
+
+    @Override
+    public String toString() {
+        return "ReposOperationDTO{" +
+                "toLat=" + toLat +
+                ", toLon=" + toLon +
+                '}';
     }
 }
