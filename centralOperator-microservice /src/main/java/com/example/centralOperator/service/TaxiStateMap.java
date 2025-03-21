@@ -41,7 +41,7 @@ public class TaxiStateMap {
 
     // Remove a taxi from the map
     public void removeTaxi(TaxiState taxiState) {
-        taxiStateMap.remove(taxiState.getTaxiId());
+        taxiStateMap.remove(taxiState.getTaxiId(), taxiState);
     }
 
     // Remove a taxi by ID
@@ -58,6 +58,11 @@ public class TaxiStateMap {
         return taxiStateMap.containsKey(taxiId);
     }
 
+    // Check if the map contains any TaxiState data
+    public boolean hasAnyTaxiState() {
+        return !taxiStateMap.isEmpty();
+    }
+
     // Print all active taxis in a key-value format
     public void printTaxisStateMap() {
         if (taxiStateMap.isEmpty()) {
@@ -71,5 +76,9 @@ public class TaxiStateMap {
 
     public List<String> getTaxiIdList() {
         return taxiStateMap.keySet().stream().collect(Collectors.toList());
+    }
+
+    public void initializeMap() {
+        taxiStateMap.clear();
     }
 }

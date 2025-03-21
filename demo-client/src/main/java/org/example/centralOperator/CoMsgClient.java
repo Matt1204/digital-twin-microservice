@@ -1,7 +1,6 @@
 package org.example.centralOperator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +15,10 @@ import org.example.taxi.TaxiState;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.*;
 
 public class CoMsgClient {
@@ -40,6 +42,8 @@ public class CoMsgClient {
     public void listenCoMsg() {
         try {
             DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+                String correlationId = delivery.getProperties().getCorrelationId();
+
                 String messageBody = new String(delivery.getBody(), StandardCharsets.UTF_8);
                 String parsedMsg = objectMapper.readValue(messageBody, String.class);
                 System.out.println(" [x] Received raw message: " + parsedMsg);
@@ -58,7 +62,11 @@ public class CoMsgClient {
                         String responseTypeStr = jsonNode.get("responseType").asText();
                         CoResType responseType = CoResType.valueOf(responseTypeStr);
 
-                        handleResponse(responseType, jsonNode);
+                        if (correlationId == null || correlationId.isEmpty()) {
+                            handleResponse(responseType, jsonNode);
+                        } else {
+                            handleCorrelationResponse(responseType, parsedMsg, correlationId);
+                        }
 
                     } catch (IllegalArgumentException e) {
                         System.err.println(" [!] invalid 'responseType': " + e.getMessage());
@@ -85,8 +93,6 @@ public class CoMsgClient {
      * Process the message based on the responseType.
      */
     private void handleResponse(CoResType responseType, JsonNode jsonNode) {
-
-
         switch (responseType) {
             case NEW_TAXI_OPERATION:
                 System.out.println(" [✓] Processing NEW_TAXI_OPERATION response");
@@ -94,6 +100,16 @@ public class CoMsgClient {
             default:
                 System.out.println(" [!] Unknown response type: " + responseType);
                 break;
+        }
+    }
+
+    private void handleCorrelationResponse(CoResType responseType, String parsedJson, String correlationId) {
+        CompletableFuture<String> future = responseMap.remove(correlationId);
+        if (future != null) {
+            System.out.println("HIT Future fulfilled");
+            future.complete(parsedJson);
+        } else {
+            System.err.println("Future not found for correlationId: " + correlationId);
         }
     }
 
@@ -177,6 +193,46 @@ public class CoMsgClient {
             System.err.println("Error serializing messageData: " + e.getMessage());
         } catch (IOException e) {
             System.err.println("Error publishing publishOpDone: " + e.getMessage());
+        }
+    }
+
+    public void publishCoInit() {
+        try {
+            String correlationId = UUID.randomUUID().toString();
+            Map<String, Object> messageData = new HashMap<>();
+            messageData.put("requestType", CoReqType.CO_INIT);
+            try {
+                String jsonMsg = objectMapper.writeValueAsString(messageData);
+                this.publishCorrelationMessage(correlationId, jsonMsg, RabbitMQConfig.CO_REQUEST_ROUTING_KEY);
+            } catch (JsonProcessingException e) {
+                System.err.println("Error publishing CON_INIT request: " + e.getMessage());
+                return;
+            }
+
+            CompletableFuture<String> responseFuture = new CompletableFuture<>();
+            responseMap.put(correlationId, responseFuture);
+
+            try {
+                // block, wait for response
+                String stringifiedJson = responseFuture.get(5, TimeUnit.SECONDS);
+                System.out.println("[x] CO_INIT response: " + stringifiedJson);
+                String parsedJson = objectMapper.readValue(stringifiedJson, String.class);
+
+            } catch (JsonMappingException e) {
+                System.err.println("error receiving CO_INIT response: " + e);
+            } catch (JsonProcessingException e) {
+                System.err.println("error receiving CO_INIT response: " + e);
+            } catch (ExecutionException e) {
+                System.err.println("error receiving CO_INIT response: " + e);
+            } catch (InterruptedException e) {
+                System.err.println("error receiving CO_INIT response: " + e);
+            } catch (TimeoutException e) {
+                System.err.println("error receiving CO_INIT response: " + e);
+            }
+
+
+        } catch (IOException e) {
+            System.err.println("Error publishing CO init: " + e.getMessage());
         }
     }
 

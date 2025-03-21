@@ -93,7 +93,6 @@ public class CoMatchingService {
     }
 
     public Map<String, List<String>> demoSimpleMatch(List<TaxiState> taxiList, List<TaxiOrder> orderList) {
-        System.out.println("----------- simpleMatch() -----------");
 //        List<TaxiOrder> orderList = activeOrders.getActiveOrders();
 //        List<TaxiState> taxiList = activeTaxis.getActiveTaxis();
 //        System.out.println("activeTaxis: " + activeTaxis.getActiveTaxisId());
@@ -110,7 +109,6 @@ public class CoMatchingService {
 
             matchedOrdersId.add(order.getOrderId());
             matchedTaxisId.add(taxi.getTaxiId());
-            System.out.println(String.format("Taxi {} --> Order {}", taxi.getTaxiId(), order.getOrderId()));
         }
 
         Map<String, List<String>> result = new HashMap<>();
