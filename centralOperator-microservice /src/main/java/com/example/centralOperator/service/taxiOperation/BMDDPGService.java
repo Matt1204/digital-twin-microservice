@@ -9,7 +9,6 @@ import com.example.centralOperator.service.CoMatchingService;
 import com.example.centralOperator.service.TaxiStateMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -67,8 +66,8 @@ public class BMDDPGService {
         handleMatchingResults(matchingResult);
         taxiOperationSequence.printTaxiOperationSequence();
 
-        taxisToUse.forEach((key, val) -> {
-            performOpInSequence(key);
+        repositionResult.forEach((taxiId, val) -> {
+            performOpInSequence(taxiId);
         });
     }
 
