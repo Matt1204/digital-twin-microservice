@@ -46,7 +46,6 @@ public class CoInitService {
             messagePublisherService.publishMessageWithCorrelationId(RabbitMQConfig.CO_RESPONSE_QUEUE, resJson, correlationId);
         } catch (JsonProcessingException e){
             System.err.println("error parsing CO_INIT response: " + e);
-
         }
     }
 }
