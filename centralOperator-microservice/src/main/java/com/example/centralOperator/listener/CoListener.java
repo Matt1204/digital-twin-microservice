@@ -5,6 +5,7 @@ import com.example.centralOperator.model.CoReqType;
 import com.example.centralOperator.model.CoResType;
 import com.example.centralOperator.publisher.MessagePublisherService;
 import com.example.centralOperator.service.CoInitService;
+import com.example.centralOperator.service.SimulationTimeService;
 import com.example.centralOperator.service.taxiOperation.BMDDPGService;
 import com.example.centralOperator.service.taxiOperation.TaxiOperationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,19 +43,22 @@ public class CoListener {
     @Autowired
     MessagePublisherService messagePublisherService;
 
+    @Autowired
+    SimulationTimeService simulationTimeService;
+
     @RabbitListener(queues = RabbitMQConfig.CO_REQUEST_QUEUE)
     public void listenCoRequest(Message message) {
         try {
             MessageProperties props = message.getMessageProperties();
             String correlationId = props.getCorrelationId();
             if (correlationId == null || correlationId.isEmpty()) {
-                logger.warn("**CO message without correlation ID, proceeding with processing");
+//                logger.warn("**CO message without correlation ID, proceeding with processing");
             } else {
-                logger.info("**CO message with correlation ID: " + correlationId);
+//                logger.info("**CO message with correlation ID: " + correlationId);
             }
 
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8);
-            logger.info("** Received CO message: " + jsonString);
+//            logger.info("** Received CO message: " + jsonString);
 
             // Parse JSON and validate structure
             JsonNode jsonNode = objectMapper.readTree(jsonString);
@@ -69,18 +73,21 @@ public class CoListener {
 
                 switch (requestType) {
                     case TAXI_OP_DONE:
-                        logger.info("** Handling TAXI_OP_DONE request");
+//                        logger.info("** Handling TAXI_OP_DONE request");
                         JsonNode payloadNode = jsonNode.get("payload");
                         taxiOperationService.onTaxiOpDone(payloadNode);
                         break;
                     case BMDDPG_WINDOW_STARTS:
-                        logger.info("** Handling BMDDPG_WINDOW_STARTS request");
+//                        logger.info("** Handling BMDDPG_WINDOW_STARTS request");
                         bmddpgService.handleTriggerAlgorithm();
                         break;
                     case CO_INIT:
-                        logger.info("** Handling CO_INIT request");
+//                        logger.info("** Handling CO_INIT request");
                         coInitService.handleCoInit(correlationId, jsonNode);
                         break;
+                    case SIMU_TIME_UPDATE:
+                        JsonNode pl = jsonNode.get("payload");
+                        simulationTimeService.handleTimeUpdate(pl);
                     default:
                         logger.warn("** Unhandled request type: " + requestType);
                         break;

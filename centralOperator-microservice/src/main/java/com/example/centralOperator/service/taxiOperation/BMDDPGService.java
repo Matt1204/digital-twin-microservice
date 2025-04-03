@@ -63,7 +63,8 @@ public class BMDDPGService {
 
         // Not your concern
         handleReposResults(repositionResult);
-        handleMatchingResults(matchingResult);
+//        handleMatchingResults(matchingResult);
+        coMatchingService.handleMatchingResults(matchingResult);
         taxiOperationSequence.printTaxiOperationSequence();
 
         repositionResult.forEach((taxiId, val) -> {
@@ -153,21 +154,21 @@ public class BMDDPGService {
         if (taxiOperationSequence.getQueueSize(taxiId) != 0) {
             performOpInSequence(taxiId);
         } else {
-            System.out.println("No Op in sequence for taxi " + taxiId);
+//            System.out.println("No Op in sequence for taxi " + taxiId);
             switch (operationType) {
                 case TaxiOperationType.IDLING -> {
-                    System.out.println("BMDDPG: handle Idling_done.");
+//                    System.out.println("BMDDPG: handle Idling_done.");
                     handleIdlingDone(taxiId);
                     break;
                 }
                 case TaxiOperationType.REPOSITIONING -> {
-                    System.out.println("BMDDPG: handle Repositioning_done.");
+//                    System.out.println("BMDDPG: handle Repositioning_done.");
                     handleRepositioningDone(taxiId);
                     break;
                 }
                 case TaxiOperationType.SERVICE -> {
                     handleServiceDone(taxiId);
-                    System.out.println("BMDDPG: handle Service_done.");
+//                    System.out.println("BMDDPG: handle Service_done.");
                     break;
                 }
             }
@@ -176,9 +177,9 @@ public class BMDDPGService {
 
     private void performOpInSequence(String taxiId) {
         System.out.println("Op Sequence Hit for taxi " + taxiId);
-        taxiOperationSequence.printTaxiOperationSequence();
+//        taxiOperationSequence.printTaxiOperationSequence();
         TaxiOperationDTO taxiOperationDTO = taxiOperationSequence.dequeueOperation(taxiId);
-        taxiOperationSequence.printTaxiOperationSequence();
+//        taxiOperationSequence.printTaxiOperationSequence();
 
         if (taxiOperationDTO instanceof IdlingOperationDTO idlingOperationDTO) {
             // Handle idling operation
