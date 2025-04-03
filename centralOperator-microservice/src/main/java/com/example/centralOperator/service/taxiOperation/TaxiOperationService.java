@@ -28,7 +28,7 @@ public class TaxiOperationService {
         try {
             String taxiId = payloadNode.get("taxiId").asText();
             TaxiOperationType operationType = TaxiOperationType.valueOf(payloadNode.get("operationType").asText());
-            System.out.println(String.format("OpDone: taxiId:%s, type:%s", taxiId, operationType));
+//            System.out.println(String.format("OpDone: taxiId:%s, type:%s", taxiId, operationType));
 
             // Read config
             String configValue = taxiOperationConfig.getOperationAlgorithm();

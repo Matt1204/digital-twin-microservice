@@ -39,7 +39,7 @@ public class CoOrderUpdateListener {
             }
 
             String jsonString = new String(message.getBody(), StandardCharsets.UTF_8);
-            System.out.println("** activeOrder Listener Received: " + jsonString);
+//            System.out.println("** activeOrder Listener Received: " + jsonString);
 
             activeOrdersService.handleAddActiveOrders(jsonString);
 
@@ -54,7 +54,7 @@ public class CoOrderUpdateListener {
                         return messagePostProcessor;
                     }
             );
-            System.out.println("** activeOrder response: " + resJson);
+//            System.out.println("** activeOrder response: " + resJson);
 
         } catch (Exception e) {
             logger.error("Failed to process order update message", e);
