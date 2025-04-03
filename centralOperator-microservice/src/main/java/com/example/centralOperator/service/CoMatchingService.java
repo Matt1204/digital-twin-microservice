@@ -2,8 +2,8 @@ package com.example.centralOperator.service;
 
 import com.example.centralOperator.model.TaxiOrder;
 import com.example.centralOperator.model.TaxiState;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.example.centralOperator.model.taxiOperation.ServiceOperationDTO;
+import com.example.centralOperator.service.taxiOperation.TaxiOperationSequence;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,75 +21,41 @@ public class CoMatchingService {
     @Autowired
     private ActiveOrders activeOrders;
 
+    @Autowired
+    private TaxiOperationSequence taxiOperationSequence;
+
+    @Autowired
+    private UtilityMonitorService utilityMonitorService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(CoMatchingService.class);
 
-    public String matchTaxiToOrder(String jsonMaps) {
-        try {
-            // Parse JSON into a map
-            Map<String, Object> parsedMaps = objectMapper.readValue(jsonMaps, new TypeReference<Map<String, Object>>() {
-            });
-            if (parsedMaps == null || !parsedMaps.containsKey("activeOrders") || !parsedMaps.containsKey("activeTaxis")) {
-                logger.error("Invalid input JSON: Missing activeOrders or activeTaxis.");
-                return "{}"; // Return empty JSON object
-            }
-
-            // Convert "activeOrders" to Map<String, Deque<Integer>>
-            Map<String, Deque<Integer>> activeOrdersMap = new HashMap<>();
-            Map<String, List<Integer>> orders = objectMapper.convertValue(parsedMaps.get("activeOrders"), new TypeReference<Map<String, List<Integer>>>() {
-            });
-            if (orders != null) {
-                for (Map.Entry<String, List<Integer>> entry : orders.entrySet()) {
-                    activeOrdersMap.put(entry.getKey(), new ArrayDeque<>(entry.getValue()));
-                }
-            }
-
-            // Convert "activeTaxis" to Map<String, Set<Integer>>
-            Map<String, Set<Integer>> activeTaxisMap = new HashMap<>();
-            Map<String, List<Integer>> taxis = objectMapper.convertValue(parsedMaps.get("activeTaxis"), new TypeReference<Map<String, List<Integer>>>() {
-            });
-            if (taxis != null) {
-                for (Map.Entry<String, List<Integer>> entry : taxis.entrySet()) {
-                    activeTaxisMap.put(entry.getKey(), new HashSet<>(entry.getValue()));
-                }
-            }
-
-            // Perform taxi-to-order matching
-            List<Integer> matchedOrders = new ArrayList<>();
-            List<Integer> matchedTaxis = new ArrayList<>();
-
-            for (String zone : activeOrdersMap.keySet()) {
-                Deque<Integer> orderQueue = activeOrdersMap.get(zone);
-                Set<Integer> taxiSet = activeTaxisMap.getOrDefault(zone, Collections.emptySet());
-                Iterator<Integer> taxiIterator = taxiSet.iterator();
-
-                while (!orderQueue.isEmpty() && taxiIterator.hasNext()) {
-                    int orderId = orderQueue.poll();
-                    int taxiId = taxiIterator.next();
-
-                    logger.info("Zone {} - taxi:{} → order:{}", zone, taxiId, orderId);
-
-                    matchedOrders.add(orderId);
-                    matchedTaxis.add(taxiId);
-                }
-            }
-
-            // Prepare result
-            Map<String, List<Integer>> result = new HashMap<>();
-            result.put("matchedOrders", matchedOrders);
-            result.put("matchedTaxis", matchedTaxis);
-
-            // Convert to JSON and return
-            String resJson = objectMapper.writeValueAsString(result);
-            return resJson;
-
-        } catch (JsonProcessingException e) {
-            logger.error("Failed to convert result to JSON", e);
-            return "{}"; // Return empty JSON object on error
-        } catch (Exception e) {
-            logger.error("Failed to match taxis to orders", e);
-            return "{}"; // Return empty JSON object on error
+    public void handleMatchingResults(Map<String, List<String>> matchingResult) {
+        if (!matchingResult.containsKey("matchedOrders") || !matchingResult.containsKey("matchedTaxis")) {
+            System.err.println("handleMatchingResults() wrong data structure given");
         }
+        List<String> matchedTaxis = matchingResult.get("matchedTaxis");
+        List<String> matchedOrders = matchingResult.get("matchedOrders");
+
+        if (matchedOrders.isEmpty() || matchedTaxis.isEmpty()) {
+            System.err.println("handleMatchingResults() empty data given");
+            return;
+        }
+
+        System.out.println("----------- handleMatchingResults() -----------");
+        Iterator<String> ordersIterator = matchedOrders.iterator();
+        Iterator<String> taxisIterator = matchedTaxis.iterator();
+        while (ordersIterator.hasNext() && taxisIterator.hasNext()) {
+            String orderId = ordersIterator.next();
+            String taxiId = taxisIterator.next();
+            System.out.println(String.format("! matched: taxi[%s] --> order[%s]", taxiId, orderId));
+
+            utilityMonitorService.calculateUtility(taxiId, orderId);
+
+            taxiOperationSequence.enqueueOperation(taxiId, new ServiceOperationDTO(orderId));
+        }
+
+        activeOrders.removeActiveOrderList(matchedOrders);
     }
 
     public Map<String, List<String>> demoSimpleMatch(List<TaxiState> taxiList, List<TaxiOrder> orderList) {
