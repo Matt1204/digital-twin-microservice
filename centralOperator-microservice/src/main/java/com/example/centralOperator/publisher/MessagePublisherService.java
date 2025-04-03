@@ -25,7 +25,7 @@ public class MessagePublisherService {
     public void publishMessage(String routingKey, String jsonMessage) {
         try {
             rabbitTemplate.convertAndSend(RabbitMQConfig.CO_EXCHANGE, routingKey, jsonMessage);
-            logger.info("Message published to {}: {}", routingKey, jsonMessage);
+//            logger.info("Message published to {}: {}", routingKey, jsonMessage);
         } catch (Exception e) {
             logger.error("Failed to publish message", e);
         }
@@ -45,7 +45,7 @@ public class MessagePublisherService {
                 message.getMessageProperties().setContentType(MessageProperties.CONTENT_TYPE_JSON);
                 return message;
             });
-            logger.info("Message published to {}: {} with correlationId: {}", routingKey, jsonMessage, correlationId);
+//            logger.info("Message published to {}: {} with correlationId: {}", routingKey, jsonMessage, correlationId);
         } catch (Exception e) {
             logger.error("Failed to publish message with correlation ID", e);
         }

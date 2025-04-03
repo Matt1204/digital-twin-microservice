@@ -20,7 +20,7 @@ public class TaxiStateMapService {
     private TaxiStateMap taxiStateMap;
 
     public void handleUpdateActiveTaxi(String jsonMsg) {
-        System.out.println("----- TaxiStateMap Update Start -----");
+//        System.out.println("----- TaxiStateMap Update Start -----");
         try {
             Map<String, Object> parsedMap = objectMapper.readValue(
                     jsonMsg, new TypeReference<Map<String, Object>>() {
@@ -34,8 +34,8 @@ public class TaxiStateMapService {
             TaxiState taxiState = objectMapper.convertValue(parsedMap.get("taxiState"), TaxiState.class);
             taxiStateMap.addUpdateTaxi(taxiState);
 
-            taxiStateMap.printTaxisStateMap();
-            System.out.println("----- TaxiStateMap Update Done -----");
+//            taxiStateMap.printTaxisStateMap();
+//            System.out.println("----- TaxiStateMap Update Done -----");
         } catch (JsonProcessingException e) {
             logger.error("Failed to convert result to JSON", e);
             return;
