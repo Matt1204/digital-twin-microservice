@@ -176,22 +176,22 @@ public class BMDDPGService {
     }
 
     private void performOpInSequence(String taxiId) {
-        System.out.println("Op Sequence Hit for taxi " + taxiId);
+        System.out.print("taxi " + taxiId + " perform op from sequence: ");
 //        taxiOperationSequence.printTaxiOperationSequence();
         TaxiOperationDTO taxiOperationDTO = taxiOperationSequence.dequeueOperation(taxiId);
 //        taxiOperationSequence.printTaxiOperationSequence();
 
         if (taxiOperationDTO instanceof IdlingOperationDTO idlingOperationDTO) {
             // Handle idling operation
-            System.out.println("This is an IdlingOperationDTO: " + idlingOperationDTO);
+            System.out.print(idlingOperationDTO + "\n");
             taxiOperationPublisher.publishIdlingOperation(taxiId, idlingOperationDTO);
         } else if (taxiOperationDTO instanceof ReposOperationDTO reposOperationDTO) {
             // Handle repositioning operation
-            System.out.println("This is a ReposOperationDTO: " + reposOperationDTO);
+            System.out.print(reposOperationDTO + "\n");
             taxiOperationPublisher.publishReposOperation(taxiId, reposOperationDTO);
         } else if (taxiOperationDTO instanceof ServiceOperationDTO serviceOperationDTO) {
             // Handle service operation
-            System.out.println("This is a ServiceOperationDTO: " + serviceOperationDTO);
+            System.out.print(serviceOperationDTO + "\n");
             taxiOperationPublisher.publishServiceOperation(taxiId, serviceOperationDTO);
         } else {
             System.err.println("Unknown TaxiOperationDTO type");

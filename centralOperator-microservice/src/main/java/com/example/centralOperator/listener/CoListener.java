@@ -88,6 +88,7 @@ public class CoListener {
                     case SIMU_TIME_UPDATE:
                         JsonNode pl = jsonNode.get("payload");
                         simulationTimeService.handleTimeUpdate(pl);
+                        break;
                     default:
                         logger.warn("** Unhandled request type: " + requestType);
                         break;
