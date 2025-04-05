@@ -1,6 +1,7 @@
 package com.example.centralOperator.service;
 
 import com.example.centralOperator.model.TaxiOrder;
+import com.example.centralOperator.service.monitoring.MatchingRateMonitorService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,9 @@ public class ActiveOrdersService {
     @Autowired
     private ActiveOrders activeOrders;
 
+    @Autowired
+    private MatchingRateMonitorService matchingRateMonitorService;
+
     public void handleAddActiveOrders(String jsonMsg) {
         try {
             Map<String, List<TaxiOrder>> parsedMap = objectMapper.readValue(jsonMsg, new TypeReference<Map<String, List<TaxiOrder>>>() {
@@ -34,6 +38,8 @@ public class ActiveOrdersService {
                 logger.warn("Received empty orderList. No orders added.");
                 return;
             }
+
+            matchingRateMonitorService.incrementAddedOrder(orderList.size());
 
             orderList.forEach(order -> activeOrders.addActiveOrder(order));
 //            System.out.println("----- activeOrders Update -----");

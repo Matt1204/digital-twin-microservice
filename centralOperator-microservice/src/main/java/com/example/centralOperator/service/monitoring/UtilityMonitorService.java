@@ -1,7 +1,10 @@
-package com.example.centralOperator.service;
+package com.example.centralOperator.service.monitoring;
 
 import com.example.centralOperator.model.TaxiOrder;
 import com.example.centralOperator.model.TaxiState;
+import com.example.centralOperator.service.ActiveOrders;
+import com.example.centralOperator.service.SimulationTimeService;
+import com.example.centralOperator.service.TaxiStateMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +46,7 @@ public class UtilityMonitorService {
             return;
         }
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd_HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMdd_HH-mm-ss");
         String timestamp = LocalDateTime.now().format(formatter);
         String filename = timestamp + "_utility.xlsx";
         Path filePath = outputDir.resolve(filename);
@@ -63,13 +66,13 @@ public class UtilityMonitorService {
             headerRow.createCell(3).setCellValue("timestamp");
 
             workbook.write(fileOut);
-            System.out.println("XLSX file created: " + filePath.toString());
+            System.out.println("utility.xlsx created: " + filePath.toString());
         } catch (IOException e) {
             System.err.println("Error while creating Excel file: " + e.getMessage());
         }
     }
 
-    public void calculateUtility(String taxiId, String orderId) {
+    public void calculatePairUtility(String taxiId, String orderId) {
         TaxiState taxiState = taxiStateMap.findTaxiById(taxiId);
         TaxiOrder order = activeOrders.findOrderById(orderId);
 //        System.out.println("monitorUtility: " + taxiState + " --- " + order);
@@ -78,7 +81,7 @@ public class UtilityMonitorService {
         double riderUtil = calculateRiderUtility(taxiState, order);
         double totalUtil = taxiUtil + riderUtil;
 
-        System.out.println(String.format("totalUtil = taxi + rider = %f + %f = %f", taxiUtil, riderUtil, totalUtil));
+        System.out.println(String.format(" - totalUtil = taxi + rider = %f + %f = %f", taxiUtil, riderUtil, totalUtil));
 
         String timestamp = simulationTimeService.getSimulationTimeStr();
         writeUtility(taxiUtil, riderUtil, totalUtil, timestamp);
@@ -92,7 +95,7 @@ public class UtilityMonitorService {
         double targetLongitude = order.getPickupLon();
         double targetLatitude = order.getPickupLat();
         double pickupDistance = haversineDistanceInMiles(initLatitude, initLongitude, targetLatitude, targetLongitude);
-        System.out.println("!!! pickupDistance: " + pickupDistance);
+//        System.out.println("!!! pickupDistance: " + pickupDistance);
         double vehicleUtil = tripIncome - COST_PER_MILE * (pickupDistance + tripDistance);
         return vehicleUtil;
     }
