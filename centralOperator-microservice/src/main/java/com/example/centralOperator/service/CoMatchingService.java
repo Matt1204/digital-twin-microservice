@@ -3,6 +3,8 @@ package com.example.centralOperator.service;
 import com.example.centralOperator.model.TaxiOrder;
 import com.example.centralOperator.model.TaxiState;
 import com.example.centralOperator.model.taxiOperation.ServiceOperationDTO;
+import com.example.centralOperator.service.monitoring.MatchingRateMonitorService;
+import com.example.centralOperator.service.monitoring.UtilityMonitorService;
 import com.example.centralOperator.service.taxiOperation.TaxiOperationSequence;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -27,6 +29,9 @@ public class CoMatchingService {
     @Autowired
     private UtilityMonitorService utilityMonitorService;
 
+    @Autowired
+    private MatchingRateMonitorService matchingRateMonitorService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(CoMatchingService.class);
 
@@ -41,20 +46,26 @@ public class CoMatchingService {
             System.err.println("handleMatchingResults() empty data given");
             return;
         }
+        if (matchedOrders.size() != matchedTaxis.size()){
+            System.err.println("matched vehicles and riders mismatch");
+            return;
+        }
 
+        matchingRateMonitorService.incrementMatchedOrder(matchedOrders.size());
         System.out.println("----------- handleMatchingResults() -----------");
         Iterator<String> ordersIterator = matchedOrders.iterator();
         Iterator<String> taxisIterator = matchedTaxis.iterator();
         while (ordersIterator.hasNext() && taxisIterator.hasNext()) {
             String orderId = ordersIterator.next();
             String taxiId = taxisIterator.next();
-            System.out.println(String.format("! matched: taxi[%s] --> order[%s]", taxiId, orderId));
+            System.out.println(String.format("matched: taxi[%s] --> order[%s]", taxiId, orderId));
 
-            utilityMonitorService.calculateUtility(taxiId, orderId);
+            utilityMonitorService.calculatePairUtility(taxiId, orderId);
 
             taxiOperationSequence.enqueueOperation(taxiId, new ServiceOperationDTO(orderId));
         }
 
+        matchingRateMonitorService.calculateMatchingRate(matchedOrders);
         activeOrders.removeActiveOrderList(matchedOrders);
     }
 
