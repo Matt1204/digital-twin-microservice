@@ -14,7 +14,7 @@ public class SimulationTimeService {
 
     public void handleTimeUpdate(JsonNode payloadNode){
         String datetimeStr = payloadNode.get("time").asText();
-        System.out.println("new datetime: " + datetimeStr);
+//        System.out.println("new datetime: " + datetimeStr);
         try {
             Date startDatetime = sdf.parse(datetimeStr);
             this.setSimulationDateTime(startDatetime);

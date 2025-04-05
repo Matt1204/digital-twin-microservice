@@ -45,7 +45,7 @@ public class TaxiOperationSequence {
             System.out.print("Empty taxiOperationSequence.");
         } else {
             taxiOperationSequence.forEach((taxiId, queue) -> {
-                System.out.print("Taxi ID " + taxiId + ": ");
+                System.out.print("Taxi " + taxiId + " sequence: ");
                 queue.forEach(operation -> System.out.print(operation + " <- "));
                 System.out.println("");
             });
