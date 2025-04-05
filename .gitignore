@@ -39,6 +39,7 @@ Thumbs.db
 *.dat
 *.mdb
 *.log
+*.png
 
 # Ignore environment files
 .env
